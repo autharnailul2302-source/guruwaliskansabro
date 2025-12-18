@@ -26,19 +26,29 @@
             --sidebar-width: 280px;
         }
 		
-		/* Warna untuk Baris Rekap Guru */
-.status-danger { background-color: #fee2e2 !important; } /* Merah Muda */
-.status-success { background-color: #d1fae5 !important; } /* Hijau Muda */
+		/* --- UPDATE: Warna Visualisasi Mood Guru --- */
+        .status-danger { 
+            background-color: #fee2e2 !important; /* Merah Muda Lembut */
+            border: 1px solid #fecaca !important;
+        } 
+        .status-success { 
+            background-color: #d1fae5 !important; /* Hijau Muda Lembut */
+            border: 1px solid #a7f3d0 !important;
+        }
+        .status-warning {
+            background-color: #fef3c7 !important; /* Kuning Muda Lembut */
+            border: 1px solid #fde68a !important;
+        }
 
-/* Badge Notifikasi Sidebar */
-.badge-notif {
-    background: #ef4444;
-    color: white;
-    border-radius: 50px;
-    padding: 2px 8px;
-    font-size: 0.7rem;
-    margin-left: auto;
-}
+        /* Badge Notifikasi Sidebar */
+        .badge-notif {
+            background: #ef4444;
+            color: white;
+            border-radius: 50px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            margin-left: auto;
+        }
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -877,6 +887,40 @@
                 <!-- Home -->
                 <div id="tabStudentHome" class="view-tab">
                     
+                    <!-- NEW: GURU WALI GREETING WIDGET (REVISED UI - Fixed Positioning) -->
+                    <!-- Tampilan: Foto Kanan, Nama Bawah Foto, Pesan Kiri -->
+                    <div id="teacherGreetingWidget" class="card border-0 shadow-sm mb-4 hidden animate-fade-in" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border-radius: 20px;">
+                        <div class="card-body p-4 position-relative overflow-hidden">
+                            <!-- Dekorasi Background -->
+                            <i class="fas fa-quote-right position-absolute" style="right: 10px; bottom: -10px; font-size: 6rem; opacity: 0.15; transform: rotate(-15deg);"></i>
+                            
+                            <div class="d-flex align-items-center justify-content-between position-relative z-1">
+                                <!-- Bagian Kiri: Isi Pesan -->
+                                <div class="flex-grow-1 pe-4">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge bg-white bg-opacity-20 rounded-pill px-3 py-1 backdrop-blur border border-white border-opacity-25 shadow-sm">
+                                            <i class="fas fa-bullhorn me-1"></i>Pesan Guru Wali
+                                        </span>
+                                        <small class="text-white-50 fw-bold" style="font-size: 0.7rem;" id="greetTime">Baru saja</small>
+                                    </div>
+                                    <div class="fs-5 fw-bold fst-italic lh-sm" id="greetMessage" style="text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        "Pesan motivasi akan muncul di sini..."
+                                    </div>
+                                </div>
+
+                                <!-- Bagian Kanan: Foto & Nama Guru (Posisi Fix) -->
+                                <div class="text-center flex-shrink-0 d-flex flex-column align-items-center">
+                                    <div class="avatar-frame rounded-circle mb-2 d-flex align-items-center justify-content-center p-0 bg-white" style="width: 70px; height: 70px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+                                         <img src="" id="greetTeacherAvatar" class="rounded-circle" width="62" height="62" style="object-fit: cover;">
+                                    </div>
+                                    <div class="fw-bold text-white small text-nowrap px-3 py-1 rounded-pill bg-black bg-opacity-10 backdrop-blur border border-white border-opacity-10" id="greetTeacherName">
+                                        Nama Guru
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- NEW MOOD CHECK WIDGET -->
                     <div class="card mb-4 border-0">
                         <div class="card-body text-center">
@@ -952,12 +996,78 @@
                     </div>
                 </div>
 
-                <!-- Goals (Updated with Tabs and Dynamic Lists) -->
-                <div id="tabStudentGoals" class="view-tab hidden">
+                <!-- NEW: PERSONALITY (MENU NO. 1) -->
+                <div id="tabStudentPersonality" class="view-tab hidden">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="fw-bold mb-4">Peta Masa Depan</h5>
+                            <h5 class="fw-bold mb-4">Kepribadian & Diri</h5>
                             
+                            <ul class="nav nav-pills mb-3" id="personalityTabs" role="tablist">
+                                <li class="nav-item flex-fill text-center">
+                                    <button class="nav-link w-100 active" data-bs-toggle="pill" data-bs-target="#pers-char-content" type="button">Sifat/Karakter</button>
+                                </li>
+                                <li class="nav-item flex-fill text-center">
+                                    <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#pers-interest-content" type="button">Minat & Bakat</button>
+                                </li>
+                                <li class="nav-item flex-fill text-center">
+                                    <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#pers-diff-content" type="button">Kesulitan</button>
+                                </li>
+                            </ul>
+
+                            <form onsubmit="savePersonality(event)">
+                                <div class="tab-content mb-4">
+                                    <!-- Karakter -->
+                                    <div class="tab-pane fade show active" id="pers-char-content">
+                                        <div class="alert alert-light border-start border-3 border-primary mb-3">
+                                            <div class="fw-bold small text-primary mb-2">Menurutmu, apa sifat/karaktermu?</div>
+                                            <div id="persCharList"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill mt-2" onclick="addPersonalityRow('char')">
+                                                <i class="fas fa-plus me-1"></i> Tambah Sifat
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Minat Bakat -->
+                                    <div class="tab-pane fade" id="pers-interest-content">
+                                        <div class="alert alert-light border-start border-3 border-success mb-3">
+                                            <div class="fw-bold small text-success mb-2">Apa minat & bakat terbesarmu?</div>
+                                            <div id="persInterestList"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill mt-2" onclick="addPersonalityRow('interest')">
+                                                <i class="fas fa-plus me-1"></i> Tambah Minat/Bakat
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Kesulitan -->
+                                    <div class="tab-pane fade" id="pers-diff-content">
+                                        <div class="alert alert-light border-start border-3 border-danger mb-3">
+                                            <div class="fw-bold small text-danger mb-2">Kesulitan Belajar</div>
+                                            <div id="persDiffStudyList"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill mt-2" onclick="addPersonalityRow('diffStudy')">
+                                                <i class="fas fa-plus me-1"></i> Tambah Kesulitan Belajar
+                                            </button>
+                                        </div>
+                                        <div class="alert alert-light border-start border-3 border-warning mb-3">
+                                            <div class="fw-bold small text-warning mb-2">Kesulitan Kehidupan (Sosial/Keluarga/dll)</div>
+                                            <div id="persDiffLifeList"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill mt-2" onclick="addPersonalityRow('diffLife')">
+                                                <i class="fas fa-plus me-1"></i> Tambah Kesulitan Hidup
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Simpan Kepribadian</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals (Updated with Tabs and Dynamic Lists) -->
+                <div id="tabStudentGoals" class="view-tab hidden">
+                     <!-- ... existing goals code ... -->
+                     <div class="card">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-4">Peta Masa Depan</h5>
                             <!-- Tabs Navigation -->
                             <ul class="nav nav-pills mb-3" id="goalTabs" role="tablist">
                                 <li class="nav-item flex-fill text-center" role="presentation">
@@ -1056,9 +1166,10 @@
                     </div>
                 </div>
 
-                <!-- NEW: PRESTASI (Student Tab) -->
+                <!-- ... existing achievements, org, skills tabs ... -->
                 <div id="tabStudentAchievements" class="view-tab hidden">
-                    <div class="card">
+                    <!-- Achievement Code preserved -->
+                     <div class="card">
                         <div class="card-body">
                             <h5 class="fw-bold mb-4">Data Prestasi Siswa</h5>
                             
@@ -1126,9 +1237,9 @@
                     </div>
                 </div>
 
-                <!-- NEW: ORGANISASI (Student Tab) -->
                 <div id="tabStudentOrg" class="view-tab hidden">
-                    <div class="card">
+                    <!-- Org Code preserved -->
+                     <div class="card">
                         <div class="card-body">
                             <h5 class="fw-bold mb-4">Riwayat Organisasi</h5>
                             
@@ -1186,8 +1297,8 @@
                     </div>
                 </div>
 
-                <!-- NEW: KEAHLIAN / SKILLS (Student Tab) -->
                 <div id="tabStudentSkills" class="view-tab hidden">
+                    <!-- Skills Code preserved -->
                     <div class="card">
                         <div class="card-body">
                             <h5 class="fw-bold mb-4">Pengembangan Keahlian</h5>
@@ -1324,7 +1435,7 @@
                     </div>
                 </div>
 
-                <!-- Profile -->
+                <!-- Profile (UPDATED: Teacher Info) -->
                 <div id="tabStudentProfile" class="view-tab hidden">
                     <div class="card">
                         <div class="card-body">
@@ -1368,9 +1479,26 @@
                                         <label class="small text-muted">Alamat Lengkap</label>
                                         <textarea id="editAddress" class="form-control" rows="2"></textarea>
                                     </div>
+                                    
+                                    <!-- NEW: TEACHER SELECTOR IN PROFILE -->
+                                    <div class="col-12 border-top pt-2 mt-2">
+                                        <label class="small fw-bold text-primary mb-1">Guru Wali Kelas</label>
+                                        <select id="editTeacherSelect" class="form-select bg-light border-0">
+                                            <option value="">-- Pilih Guru Wali --</option>
+                                        </select>
+                                        <small class="text-muted" style="font-size:0.7rem">*Pilih guru wali agar bisa menerima pesan harian.</small>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary w-100 mt-4 rounded-pill">Simpan Perubahan</button>
                             </form>
+                            
+                            <!-- NEW: Teacher Profile Info -->
+                            <div class="mt-4 pt-4 border-top">
+                                <h6 class="fw-bold mb-3">Info Guru Wali</h6>
+                                <div id="myTeacherInfo" class="d-flex align-items-center gap-3 p-3 bg-light rounded-3">
+                                    <div class="text-center w-100 text-muted small py-2">Memuat data guru...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1388,7 +1516,7 @@
         </div>
         
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm" onclick="document.querySelector('[data-target=\'t_students\']').click()" style="cursor:pointer">
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
@@ -1401,7 +1529,20 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+             <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm" onclick="document.querySelector('[data-target=\'t_daily_msg\']').click()" style="cursor:pointer">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning">
+                            <i class="fas fa-bullhorn fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Pesan Harian</h6>
+                            <small class="text-muted">Kirim sapaan/motivasi</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card h-100 border-0 shadow-sm" onclick="document.querySelector('[data-target=\'t_inbox\']').click()" style="cursor:pointer">
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
@@ -1430,6 +1571,53 @@
         <input type="text" class="form-control mb-3 rounded-pill border-0 shadow-sm p-3" id="searchStudent" placeholder="🔍 Cari nama siswa..." onkeyup="filterStudents()">
         <div id="studentsContainer" class="row g-3">
             <!-- List siswa akan muncul di sini -->
+        </div>
+        <div id="teacherPagination" class="d-flex justify-content-center gap-2 mt-4 pb-4"></div>
+    </div>
+    
+    <!-- NEW: PESAN HARIAN GURU (Tab Baru) -->
+    <div id="t_daily_msg" class="view-tab hidden">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-4"><i class="fas fa-paper-plane me-2 text-warning"></i>Kirim Pesan Harian</h5>
+                <form onsubmit="sendDailyMessage(event)">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Target Penerima</label>
+                        <select id="msgTarget" class="form-select">
+                            <option value="ALL">Semua Siswa Perwalian</option>
+                            <!-- Individual students will be populated here -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Pesan / Motivasi / Pengumuman</label>
+                        <textarea id="msgBody" class="form-control" rows="3" placeholder="Contoh: Selamat pagi anak-anak, jangan lupa sarapan dan semangat belajar!" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold">Kirim Pesan</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0">Riwayat Pesan Terkirim</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light small text-muted">
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Penerima</th>
+                                <th>Isi Pesan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="msgHistoryBody" class="small">
+                            <tr><td colspan="3" class="text-center py-3 text-muted">Memuat riwayat...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="msgPagination" class="d-flex justify-content-center gap-2 py-3 border-top"></div>
+            </div>
         </div>
     </div>
 
@@ -1594,8 +1782,83 @@
 
             <!-- --- ADMIN VIEWS --- -->
             <div id="adminView" class="hidden">
-                <!-- (Same as before, abbreviated for space since no changes requested here) -->
-                <div id="tabAdminUsers" class="view-tab">
+                <!-- 1. ADMIN HOME (NEW) -->
+                <div id="tabAdminHome" class="view-tab">
+                    <div class="card bg-dark text-white mb-4 border-0 shadow" style="background: linear-gradient(45deg, #1e293b, #334155);">
+                        <div class="card-body p-4">
+                            <h3 class="fw-bold"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h3>
+                            <p class="mb-0 opacity-75">Selamat Datang Administrator. Pantau statistik dan kelola pengguna.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                                        <i class="fas fa-user-graduate fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="fw-bold mb-0" id="statStudentCount">0</h3>
+                                        <small class="text-muted">Total Siswa</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                                        <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="fw-bold mb-0" id="statTeacherCount">0</h3>
+                                        <small class="text-muted">Total Guru</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                                        <i class="fas fa-comments fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="fw-bold mb-0" id="statMsgCount">-</h3>
+                                        <small class="text-muted">Pesan Masuk</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm cursor-pointer hover-card" onclick="document.querySelector('[data-target=\'tabAdminUsers\']').click()">
+                                <div class="card-body text-center p-4">
+                                    <i class="fas fa-users-cog fa-3x text-secondary mb-3"></i>
+                                    <h5 class="fw-bold">Manajemen User</h5>
+                                    <p class="text-muted small">Tambah, Edit, atau Hapus Akun Siswa & Guru</p>
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-4">Kelola</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm cursor-pointer hover-card" onclick="document.querySelector('[data-target=\'tabAdminKeys\']').click()">
+                                <div class="card-body text-center p-4">
+                                    <i class="fas fa-key fa-3x text-warning mb-3"></i>
+                                    <h5 class="fw-bold">Kode Akses</h5>
+                                    <p class="text-muted small">Atur Kode Registrasi Aplikasi</p>
+                                    <button class="btn btn-outline-warning btn-sm rounded-pill px-4">Atur</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. USER MANAGEMENT -->
+                <div id="tabAdminUsers" class="view-tab hidden">
                     <ul class="nav nav-tabs mb-3 border-bottom-0" id="adminUserSubTabs">
                         <li class="nav-item"><a class="nav-link active small rounded-pill me-2 px-3 cursor-pointer" onclick="openUserList('student', this)">Siswa</a></li>
                         <li class="nav-item"><a class="nav-link small rounded-pill me-2 px-3 cursor-pointer" onclick="openUserList('teacher', this)">Guru</a></li>
@@ -1603,19 +1866,25 @@
                         <li class="nav-item"><a class="nav-link small rounded-pill px-3 cursor-pointer" onclick="openClassManager(this)">Data Kelas</a></li>
                     </ul>
                     <div id="adminUserSection">
-                        <div class="row g-3 mb-4">
-                            <div class="col-6"><div class="card bg-danger text-white h-100"><div class="card-body p-3"><h3 class="mb-0 fw-bold" id="totalUsersCount">0</h3><small class="opacity-75">Total Users</small></div></div></div>
-                            <div class="col-6"><div class="card bg-primary text-white h-100" onclick="document.getElementById('addUserForm').classList.toggle('hidden')" style="cursor:pointer"><div class="card-body p-3 d-flex align-items-center justify-content-center flex-column"><i class="fas fa-user-plus fs-3 mb-1"></i><small>Add User</small></div></div></div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0" id="userListTitle">Daftar User</h6>
+                            <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="document.getElementById('addUserForm').classList.toggle('hidden')">
+                                <i class="fas fa-plus me-1"></i> Tambah User
+                            </button>
                         </div>
+                        
                         <div id="addUserForm" class="card mb-3 hidden bg-light border-primary border-dashed animate-fade-in"><div class="card-body"><h6 class="fw-bold mb-3" id="formUserTitle">User Baru / Edit</h6><form onsubmit="addUserManual(event)"><input type="hidden" id="editUserId"><div class="row g-2 mb-2"><div class="col-4"><input type="text" id="addName" class="form-control form-control-sm" placeholder="Nama" required></div><div class="col-4"><input type="email" id="addEmail" class="form-control form-control-sm" placeholder="Email" required></div><div class="col-4"><input type="text" id="addPhone" class="form-control form-control-sm" placeholder="No HP"></div></div><div class="row g-2 mb-2"><div class="col-4"><select id="addRole" class="form-select form-select-sm" onchange="toggleUserFields()"><option value="student">Siswa</option><option value="teacher">Guru</option><option value="admin">Admin</option></select></div><div class="col-4 student-only"><select id="addClass" class="form-select form-select-sm dynamic-class-select"><option value="" disabled selected>Kelas</option></select></div><div class="col-4 student-only"><input type="text" id="addBatch" class="form-control form-control-sm" placeholder="Thn Ajaran (24/25)"></div></div><button type="submit" class="btn btn-sm btn-primary w-100">Simpan</button></form></div></div>
                         <div class="card border-0 shadow-sm"><div class="table-responsive"><table class="table table-hover mb-0 align-middle"><thead class="table-light small"><tr><th>User</th><th>Info</th><th>Aksi</th></tr></thead><tbody id="adminUserListBody" class="small"></tbody></table></div></div>
+                        <div id="adminPagination" class="d-flex justify-content-center gap-2 mt-3"></div>
                     </div>
                     <div id="adminClassSection" class="hidden"><div class="card border-0 shadow-sm"><div class="card-body"><h6 class="fw-bold mb-3">Daftar Kelas</h6><div class="input-group mb-3"><input type="text" id="newClassName" class="form-control" placeholder="Nama Kelas Baru"><button class="btn btn-primary" onclick="addClass()"><i class="fas fa-plus"></i></button></div><ul class="list-group list-group-flush" id="classListGroup"></ul></div></div></div>
                 </div>
+                
                 <div id="tabAdminMenus" class="view-tab hidden">
                     <div id="menuListAdmin" class="mb-3"></div><button class="btn btn-primary w-100 rounded-pill mb-3" onclick="document.getElementById('addMenuForm').classList.toggle('hidden')"><i class="fas fa-plus me-1"></i> Tambah Menu</button>
                     <div id="addMenuForm" class="card hidden bg-light animate-fade-in"><div class="card-body"><form onsubmit="saveMenu(event)"><input type="hidden" id="menuId"><div class="row g-2 mb-2"><div class="col-8"><input type="text" id="menuTitle" class="form-control" placeholder="Judul" required></div><div class="col-4"><select id="menuIcon" class="form-select"><option value="fa-calendar">📅</option><option value="fa-book">📚</option><option value="fa-video">🎥</option><option value="fa-info">ℹ️</option></select></div></div><div class="row g-2 mb-2"><div class="col-4"><select id="menuRole" class="form-select"><option value="all">All</option><option value="student">Siswa</option><option value="teacher">Guru</option></select></div><div class="col-8"><input type="text" id="menuLink" class="form-control" placeholder="URL Link"></div></div><button type="submit" class="btn btn-sm btn-success w-100">Simpan</button></form></div></div>
                 </div>
+                
                 <div id="tabAdminKeys" class="view-tab hidden"><div class="card mb-4"><div class="card-body"><h6 class="fw-bold mb-3">Manajemen Kode Registrasi</h6><form onsubmit="saveAppKeys(event)"><div class="mb-2"><label class="small text-muted">Siswa</label><input type="text" id="keyStudent" class="form-control fw-bold text-success font-monospace"></div><div class="mb-2"><label class="small text-muted">Guru</label><input type="text" id="keyTeacher" class="form-control fw-bold text-primary font-monospace"></div><div class="mb-3"><label class="small text-muted">Admin</label><input type="text" id="keyAdmin" class="form-control fw-bold text-danger font-monospace"></div><button type="submit" class="btn btn-dark w-100 rounded-pill">Update Kode</button></form></div></div><div class="card border-warning"><div class="card-header bg-warning bg-opacity-10 border-0"><h6 class="fw-bold mb-0 text-warning-emphasis"><i class="fas fa-tools me-2"></i>Admin Troubleshooting</h6></div><div class="card-body"><p class="small text-muted mb-2">Gunakan fitur ini jika ada siswa yang datanya error/stuck.</p><div class="input-group mb-2"><input type="email" id="resetUserEmail" class="form-control" placeholder="Email Siswa"><button class="btn btn-outline-danger" onclick="adminResetUserMood()">Reset Data Mood</button></div><small class="text-secondary d-block" style="font-size: 0.7rem;">*Fitur ini akan mereset status mood siswa menjadi netral.</small></div></div></div>
             </div>
 
@@ -1635,9 +1904,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInWithCustomToken, sendPasswordResetEmail, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
 		
-		import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, where, onSnapshot, updateDoc, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, query, where, onSnapshot, updateDoc, limit, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Config Setup - Preserving User's provided config
         let firebaseConfig;
@@ -1680,9 +1948,7 @@ function updateHeroRole(role) {
 		//tambahan
 		let allStudentsCache = []; 
 		let allInboxCache = [];
-		
-	
-		
+        let allMsgHistoryCache = []; // Cache for teacher message history
 		
         let userData = null;
         let allUsersCache = []; // Cache for admin filtering
@@ -1692,6 +1958,13 @@ function updateHeroRole(role) {
         let selectedStudentChatId = null; // For Teacher to reply
         let currentStudentReportId = null; // For Teacher Report Modal
         
+        // --- PAGINATION VARS ---
+        let itemsPerPage = 10;
+        let currentAdminPage = 1;
+        let currentTeacherPage = 1;
+        let currentTeacherGrade = 'X'; // Default
+        let currentMsgHistoryPage = 1;
+
         // --- GOAL STATE MANAGEMENT ---
         let currentGoals = { x: [], xi: [], xii: [] }; // Stores plain text for Edit Tab
         let goalObjects = { x: [], xi: [], xii: [] }; // Stores objects {t, d} for Report Tab
@@ -1703,6 +1976,14 @@ function updateHeroRole(role) {
             reason: "",
             confidence: "",
             locked: false
+        };
+
+        // NEW: Personality State
+        let personalityData = {
+            char: [],
+            interest: [],
+            diffStudy: [],
+            diffLife: []
         };
 
         let teacherNoteVal = "";
@@ -1825,8 +2106,13 @@ function updateHeroRole(role) {
             else if(mood === 'angry') score = 30; // Added logic for angry
             
             try {
-                // Background update
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { mood: score });
+                // Background update: Update main doc AND push to history array
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { 
+                    mood: score,
+                    // 🔥 MODIFICATION: Save history for teacher recap
+                    mood_history: arrayUnion(mood)
+                });
+                
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'mood_logs'), {
                     mood: mood,
                     timestamp: new Date().toISOString()
@@ -2007,6 +2293,8 @@ function updateHeroRole(role) {
             if(role === 'student') {
                 links = [
                     { id: 'tabStudentHome', icon: 'fa-home', label: 'Home' },
+                    // NEW: Personality Menu
+                    { id: 'tabStudentPersonality', icon: 'fa-fingerprint', label: 'Personality' },
                     { id: 'tabStudentGoals', icon: 'fa-bullseye', label: 'Goals' },
                     { id: 'tabStudentAchievements', icon: 'fa-trophy', label: 'Prestasi' },
                     { id: 'tabStudentOrg', icon: 'fa-sitemap', label: 'Organisasi' },
@@ -2019,12 +2307,14 @@ function updateHeroRole(role) {
     links = [
          { id: 't_home', icon: 'fa-home', label: 'Beranda' },
          { id: 't_students', icon: 'fa-users', label: 'Data Siswa', func: 'fetchStudents' },
+         { id: 't_daily_msg', icon: 'fa-bullhorn', label: 'Pesan Harian', func: 'loadMessageHistory' }, // NEW
          { id: 't_inbox', icon: 'fa-envelope', label: 'Inbox', func: 'loadTeacherInbox' },
          { id: 't_profile', icon: 'fa-user-circle', label: 'Profil Saya', func: 'loadTeacherProfile' }
     ];
             } else if (role === 'admin') {
                 links = [
-                    { id: 'tabAdminUsers', icon: 'fa-users-cog', label: 'Manajemen User' },
+                    { id: 'tabAdminHome', icon: 'fa-home', label: 'Beranda', func: 'loadAdminHome' }, // NEW
+                    { id: 'tabAdminUsers', icon: 'fa-users-cog', label: 'Manajemen User', func: 'loadAdminDashboard' },
                     { id: 'tabAdminMenus', icon: 'fa-list', label: 'Manajemen Menu', func: 'loadAdminMenus' },
                     { id: 'tabAdminKeys', icon: 'fa-key', label: 'Manajemen Key', func: 'loadAppKeys' }
                 ];
@@ -2046,7 +2336,8 @@ function updateHeroRole(role) {
                 hide('bottomNav');
                 setTimeout(() => {
                     window.switchTab(links[0].id, null);
-                    if(role === 'admin') loadAdminDashboard();
+                    // UPDATE: Panggil loadAdminHome jika admin
+                    if(role === 'admin') loadAdminHome();
                     if(role === 'teacher') { loadDynamicMenus('teacher'); fetchStudents(); }
                 }, 100);
             }
@@ -2064,7 +2355,7 @@ function updateHeroRole(role) {
     show('studentFields');
 
     // 🔥 LOAD GURU WALI DI SINI
-    loadGuruFromDatabase();
+    loadGuruFromDatabase('signupTeacher');
 
 } else if (v === APP_KEYS.teacher || v === APP_KEYS.admin) {
     show('staffFields');
@@ -2155,8 +2446,11 @@ function updateHeroRole(role) {
 
             const userDataPayload = { email: email, role, name: name||'User', createdAt: new Date().toISOString() };
             if(role === 'student') {
-                userDataPayload.class = getVal('regClass'); userDataPayload.batch = getVal('regBatch');
-                userDataPayload.avatar = 'male'; userDataPayload.mood = 50;
+                userDataPayload.class = getVal('regClass'); 
+                userDataPayload.batch = getVal('regBatch');
+                userDataPayload.teacherUid = getVal('signupTeacher'); // SAVE SELECTED TEACHER
+                userDataPayload.avatar = 'male'; 
+                userDataPayload.mood = 50;
             }
 
             try {
@@ -2265,7 +2559,40 @@ function updateHeroRole(role) {
         }
 
         // --- ADMIN: USERS & MENUS ---
-        async function loadAdminDashboard() {
+        // NEW Function for Admin Home
+        window.loadAdminHome = async () => {
+           // Reuse cache if available or fetch
+           const qUsers = query(collection(db, 'artifacts', appId, 'public', 'data', 'users'));
+           // For simplicity and to ensure fresh count on load:
+           const snapUsers = await getDocs(qUsers);
+           let sCount = 0, tCount = 0;
+           snapUsers.forEach(d => {
+               if(d.data().role === 'student') sCount++;
+               if(d.data().role === 'teacher') tCount++;
+           });
+           
+           document.getElementById('statStudentCount').innerText = sCount;
+           document.getElementById('statTeacherCount').innerText = tCount;
+           
+           // Messages count (optional, can be expensive if many docs)
+           // For now just put placeholder or fetch all
+           const qMsg = query(collection(db, 'artifacts', appId, 'public', 'data', 'curhat_messages'));
+           const snapMsg = await getDocs(qMsg);
+           document.getElementById('statMsgCount').innerText = snapMsg.size;
+        };
+
+        window.loadAdminDashboard = async () => {
+            // Pastikan tampilan kembali ke list user (jika sebelumnya buka data kelas)
+            show('adminUserSection');
+            hide('adminClassSection');
+            
+            // Reset tab active ke 'Siswa'
+            const tabs = document.querySelectorAll('#adminUserSubTabs .nav-link');
+            tabs.forEach(t => t.classList.remove('active'));
+            if(tabs[0]) tabs[0].classList.add('active');
+            currentAdminFilter = 'student';
+            currentAdminPage = 1; // RESET PAGE
+
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'users'));
             const s = await getDocs(q);
             allUsersCache = []; // Reset cache
@@ -2274,9 +2601,8 @@ function updateHeroRole(role) {
                 allUsersCache.push({id: d.id, ...d.data()});
                 total++;
             });
-            document.getElementById('totalUsersCount').innerText = total;
             renderAdminUserTable();
-        }
+        };
 
         // New Logic to handle User Sub-Tabs and Class Management View
         window.openUserList = (role, el) => {
@@ -2300,6 +2626,13 @@ function updateHeroRole(role) {
 
         window.filterAdminUserList = (role) => {
             currentAdminFilter = role;
+            currentAdminPage = 1; // RESET PAGE
+            renderAdminUserTable();
+        }
+        
+        // --- ADMIN PAGINATION HELPER ---
+        window.changeAdminPage = (newPage) => {
+            currentAdminPage = newPage;
             renderAdminUserTable();
         }
 
@@ -2307,9 +2640,16 @@ function updateHeroRole(role) {
             let h = '';
             const filtered = allUsersCache.filter(u => u.role === currentAdminFilter);
             
-            if(filtered.length === 0) h = `<tr><td colspan="3" class="text-center text-muted py-3">Tidak ada data ${currentAdminFilter}</td></tr>`;
+            // PAGINATION LOGIC
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            if (currentAdminPage > totalPages) currentAdminPage = totalPages || 1;
+
+            const start = (currentAdminPage - 1) * itemsPerPage;
+            const paginated = filtered.slice(start, start + itemsPerPage);
+
+            if(paginated.length === 0) h = `<tr><td colspan="3" class="text-center text-muted py-3">Tidak ada data ${currentAdminFilter}</td></tr>`;
             
-            filtered.forEach(u => {
+            paginated.forEach(u => {
                 h += `<tr>
                     <td>
                         <div class="fw-bold">${u.name}</div>
@@ -2327,6 +2667,31 @@ function updateHeroRole(role) {
                 </tr>`;
             });
             document.getElementById('adminUserListBody').innerHTML = h;
+
+            // RENDER PAGINATION BUTTONS
+            renderPaginationControls('adminPagination', currentAdminPage, totalPages, 'changeAdminPage');
+        }
+
+        // --- GENERIC PAGINATION UI RENDERER ---
+        function renderPaginationControls(containerId, currentPage, totalPages, funcName) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <button class="btn btn-sm btn-outline-primary" ${currentPage === 1 ? 'disabled' : ''} onclick="${funcName}(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="d-flex align-items-center px-2 text-muted small">Hal ${currentPage} dari ${totalPages}</span>
+                <button class="btn btn-sm btn-outline-primary" ${currentPage === totalPages ? 'disabled' : ''} onclick="${funcName}(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            container.innerHTML = html;
         }
 
         window.toggleUserFields = () => {
@@ -2404,7 +2769,7 @@ function updateHeroRole(role) {
         window.deleteMenu = async(id) => { if(confirm('Del?')) { await deleteDoc(doc(db,'artifacts',appId,'public','data','menus',id)); loadAdminMenus(); }};
 
         // --- STUDENT LOGIC ---
-        function loadStudentDashboard() {
+        async function loadStudentDashboard() {
             if(userData) {
                 document.getElementById('dispClass').innerText = userData.class || '-';
                 document.getElementById('dispHobby').innerText = userData.batch || '-'; 
@@ -2415,6 +2780,12 @@ function updateHeroRole(role) {
                 setVal('editAddress', userData.address||''); 
                 setVal('editPhone', userData.phone||'');
                 
+                // Set teacher dropdown in profile if exists
+                loadGuruFromDatabase('editTeacherSelect');
+                if(userData.teacherUid) {
+                    setTimeout(() => setVal('editTeacherSelect', userData.teacherUid), 1500); // Delay for options to load
+                }
+                
                 const currentAvatar = userData.avatar || 'male';
                 setVal('editAvatarValue', currentAvatar);
                 document.getElementById('previewAvatar').src = getAvatarUrl(currentAvatar, 'student');
@@ -2423,12 +2794,170 @@ function updateHeroRole(role) {
                 loadGoals(currentUser.uid); 
                 loadAchievements(currentUser.uid); 
                 loadOrganizations(currentUser.uid); 
-                loadSkills(currentUser.uid); // Load Skills
+                loadSkills(currentUser.uid);
+                loadPersonality(currentUser.uid); // NEW: Load Personality
                 initChatListener(currentUser.uid);
                 loadMoodHistory();
+                
+                // NEW: Load Teacher Info & Greeting
+                if(userData.teacherUid) {
+                    loadTeacherInfo(userData.teacherUid);
+                    loadTeacherGreeting(userData.teacherUid);
+                } else {
+                    document.getElementById('myTeacherInfo').innerHTML = '<div class="text-danger small">Belum ada Guru Wali. Silakan pilih di menu "Edit Profil" diatas.</div>';
+                }
             }
         }
         
+        // NEW: Load Teacher Profile in Profile Tab
+        async function loadTeacherInfo(teacherUid) {
+            try {
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', teacherUid));
+                if(snap.exists()) {
+                    const t = snap.data();
+                    const ava = getAvatarUrl(t.avatar, 'teacher');
+                    document.getElementById('myTeacherInfo').innerHTML = `
+                        <img src="${ava}" class="rounded-circle border" width="50" height="50" style="object-fit:cover;">
+                        <div>
+                            <div class="fw-bold text-dark">${t.name}</div>
+                            <div class="small text-muted">Guru Wali</div>
+                        </div>
+                    `;
+                    // Also set greeting widget details
+                    document.getElementById('greetTeacherAvatar').src = ava;
+                    document.getElementById('greetTeacherName').innerText = t.name;
+                }
+            } catch(e) { console.error("Err loading teacher", e); }
+        }
+
+        // NEW: Load Greeting
+        async function loadTeacherGreeting(teacherUid) {
+            if(!teacherUid) return; // Guard clause
+            
+            try {
+                // Get messages from this teacher
+                // Hapus orderBy untuk menghindari error index Firestore
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'daily_messages'), 
+                    where('senderUid', '==', teacherUid)
+                );
+                
+                const snap = await getDocs(q);
+                if(!snap.empty) {
+                    // Manual Sort in JS (Newest First / Descending)
+                    let msgs = [];
+                    snap.forEach(d => {
+                        const m = d.data();
+                        // FILTER HERE: Show if TARGET is ALL or MyUID
+                        if(m.targetUid === 'ALL' || m.targetUid === currentUser.uid) {
+                            msgs.push(m);
+                        }
+                    });
+                    
+                    if(msgs.length > 0) {
+                        msgs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        
+                        const msg = msgs[0]; // Ambil pesan paling baru
+                        
+                        // Show Widget & Fill Data
+                        const widget = document.getElementById('teacherGreetingWidget');
+                        if(widget) {
+                            // Pastikan data guru (Avatar/Nama) sudah termuat sebelumnya lewat loadTeacherInfo
+                            // Tapi kita set lagi disini untuk memastikan
+                            const tAvatar = document.getElementById('greetTeacherAvatar');
+                            if(tAvatar && !tAvatar.src) {
+                                // Fallback jika avatar belum ada, pakai icon default sementara
+                                tAvatar.src = "https://api.dicebear.com/9.x/avataaars/svg?seed=Teacher";
+                            }
+                            
+                            document.getElementById('greetMessage').innerText = `"${msg.body}"`;
+                            
+                            // Format Time nice
+                            const d = new Date(msg.timestamp);
+                            const timeStr = d.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ' • ' + d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                            document.getElementById('greetTime').innerText = timeStr;
+                            
+                            // Munculkan widget
+                            widget.classList.remove('hidden');
+                        }
+                    }
+                }
+            } catch(e) { console.error("Greeting load err", e); }
+        }
+
+        // --- NEW: PERSONALITY LOGIC ---
+        async function loadPersonality(uid) {
+            try {
+                const s = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'personality', 'main'));
+                if(s.exists()) {
+                    personalityData = s.data();
+                } else {
+                    personalityData = { char: [], interest: [], diffStudy: [], diffLife: [] };
+                }
+                renderPersonalityList('char');
+                renderPersonalityList('interest');
+                renderPersonalityList('diffStudy');
+                renderPersonalityList('diffLife');
+            } catch(e) { console.error(e); }
+        }
+
+        window.renderPersonalityList = (type) => {
+            let containerId = '';
+            if(type === 'char') containerId = 'persCharList';
+            if(type === 'interest') containerId = 'persInterestList';
+            if(type === 'diffStudy') containerId = 'persDiffStudyList';
+            if(type === 'diffLife') containerId = 'persDiffLifeList';
+            
+            const list = personalityData[type] || [];
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            list.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'goal-item-row';
+                row.innerHTML = `
+                    <input type="text" class="form-control goal-item-input" value="${item}" onchange="updatePersonalityItem('${type}', ${index}, this.value)" placeholder="Isi disini...">
+                    <button type="button" class="goal-delete-btn" onclick="deletePersonalityItem('${type}', ${index})"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(row);
+            });
+        };
+
+        window.addPersonalityRow = (type) => {
+            if(!personalityData[type]) personalityData[type] = [];
+            personalityData[type].push("");
+            renderPersonalityList(type);
+        };
+
+        window.updatePersonalityItem = (type, index, value) => {
+            personalityData[type][index] = value;
+        };
+
+        window.deletePersonalityItem = (type, index) => {
+            personalityData[type].splice(index, 1);
+            renderPersonalityList(type);
+        };
+
+        window.savePersonality = async (e) => {
+            e.preventDefault();
+            // Clean empty
+            const clean = (arr) => arr.filter(t => t && t.trim() !== "");
+            const dataToSave = {
+                char: clean(personalityData.char),
+                interest: clean(personalityData.interest),
+                diffStudy: clean(personalityData.diffStudy),
+                diffLife: clean(personalityData.diffLife)
+            };
+            
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'personality', 'main'), dataToSave);
+                personalityData = dataToSave;
+                // Re-render to show clean lists
+                renderPersonalityList('char'); renderPersonalityList('interest');
+                renderPersonalityList('diffStudy'); renderPersonalityList('diffLife');
+                alert("Data Kepribadian Tersimpan!");
+            } catch(e) { alert("Gagal simpan: " + e.message); }
+        };
+
         // --- SKILLS LOGIC (NEW) ---
         async function loadSkills(uid, isTeacherMode=false) {
             if(!uid) return;
@@ -2812,6 +3341,11 @@ function updateHeroRole(role) {
                 phone: getVal('editPhone'), 
                 avatar: getVal('editAvatarValue') 
             };
+            
+            // NEW: UPDATE TEACHER UID IF SELECTED
+            const newTeacher = getVal('editTeacherSelect');
+            if(newTeacher) u.teacherUid = newTeacher;
+
             await updateDoc(doc(db,'artifacts',appId,'public','data','users',currentUser.uid), u);
             alert('Profil Berhasil Diupdate!'); 
             userData = { ...userData, ...u };
@@ -2827,112 +3361,146 @@ window.fetchStudents = async (gradeFilter = 'X', tabEl) => {
         document.querySelectorAll('#studentGradeTabs .nav-link').forEach(l => l.classList.remove('active'));
         tabEl.classList.add('active');
     }
+    if (gradeFilter) {
+        currentTeacherGrade = gradeFilter;
+        currentTeacherPage = 1; // Reset Page on tab switch
+    }
     
-    const container = document.getElementById('studentsContainer');
-    container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
-
-    try {
-        // Cek Cache (agar tidak request terus menerus)
-        if(allStudentsCache.length === 0) {
+    // Cek Cache (agar tidak request terus menerus)
+    if(allStudentsCache.length === 0) {
+        const container = document.getElementById('studentsContainer');
+        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        try {
             const q = query(collection(db,'artifacts',appId,'public','data','users'), where('role','==','student'));
             const s = await getDocs(q);
             allStudentsCache = [];
             s.forEach(d => allStudentsCache.push({id: d.id, ...d.data()}));
+            // Populate select for messaging
+            populateMessageTargets();
+            renderTeacherStudents();
+        } catch(e) { 
+            console.error(e); 
+            container.innerHTML = '<div class="text-danger">Gagal memuat data.</div>'; 
         }
+    } else {
+        renderTeacherStudents();
+    }
+};
 
-        // Filter berdasarkan Angkatan (Cek string kelas dimulai dengan "X ", "XI ", dll)
-        const filtered = allStudentsCache.filter(u => {
-            if(!u.class) return false;
-            const c = u.class.toUpperCase();
-            if(gradeFilter === 'X') return c.startsWith('X ') || c === 'X';
-            if(gradeFilter === 'XI') return c.startsWith('XI ') || c === 'XI';
-            if(gradeFilter === 'XII') return c.startsWith('XII ') || c === 'XII';
-            return false;
-        });
+window.changeTeacherPage = (newPage) => {
+    currentTeacherPage = newPage;
+    renderTeacherStudents();
+}
 
-        // Grouping: Kelompokkan siswa berdasarkan Nama Kelasnya
-        const grouped = {};
-		container.innerHTML = '';
-		
-        filtered.forEach(u => {
-            const cls = u.class || 'Tanpa Kelas';
-            if(!grouped[cls]) grouped[cls] = [];
-            grouped[cls].push(u);
-			
-			// 🔥 ANALISIS MOOD (AMAN MESKI KOSONG)
-    const moodResult = analyzeWeeklyMood(u.moods);
+function renderTeacherStudents() {
+    const container = document.getElementById('studentsContainer');
+    container.innerHTML = ''; // Reset container
 
-    let statusClass = '';
-    let statusText = '';
+    // Filter berdasarkan Angkatan (Cek string kelas dimulai dengan "X ", "XI ", dll)
+    const filtered = allStudentsCache.filter(u => {
+        if(!u.class) return false;
+        const c = u.class.toUpperCase();
+        if(currentTeacherGrade === 'X') return c.startsWith('X ') || c === 'X';
+        if(currentTeacherGrade === 'XI') return c.startsWith('XI ') || c === 'XI';
+        if(currentTeacherGrade === 'XII') return c.startsWith('XII ') || c === 'XII';
+        return false;
+    });
+    
+    // --- PAGINATION LOGIC TEACHER ---
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    if(currentTeacherPage > totalPages) currentTeacherPage = totalPages || 1;
 
-    if (moodResult.dominant === 'happy') {
-        statusClass = 'status-success';
-        statusText = '🌱 Kondisi emosional positif';
-    } 
-    else if (moodResult.dominant === 'sad' || moodResult.dominant === 'angry') {
-        statusClass = 'status-danger';
-        statusText = '⚠️ Siswa perlu perhatian khusus';
+    const start = (currentTeacherPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+
+    // Grouping: Kelompokkan siswa *yang ada di halaman ini* berdasarkan Nama Kelasnya
+    const grouped = {};
+    
+    paginated.forEach(u => {
+        const cls = u.class || 'Tanpa Kelas';
+        if(!grouped[cls]) grouped[cls] = [];
+        grouped[cls].push(u);
+    });
+
+    // Render HTML
+    let html = '';
+    const sortedClasses = Object.keys(grouped).sort();
+    
+    if(sortedClasses.length === 0) {
+        html = '<div class="col-12 text-center text-muted fst-italic py-4">Tidak ada siswa di angkatan ini (Halaman Kosong).</div>';
     }
 
-    container.innerHTML += `
-        <div class="col-md-6">
-            <div class="card ${statusClass}">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-1">${u.name}</h6>
-                    <small class="text-muted">${u.class}</small>
-                    <!-- STATUS MOOD -->
-                <div class="mt-2 fw-bold 
-                    ${statusClass === 'status-danger' ? 'text-danger' : 
-                      statusClass === 'status-success' ? 'text-success' : ''}">
-                    ${statusText}
-                </div>
-				
-            </div>
-        </div>
-    `;
-
-        });
-
-        // Render HTML
-        let html = '';
-        const sortedClasses = Object.keys(grouped).sort();
+    sortedClasses.forEach(clsName => {
+        // Header Kelas
+        html += `<div class="col-12 mt-4"><h6 class="fw-bold text-primary border-bottom pb-2">${clsName} <span class="badge bg-light text-dark ms-2">${grouped[clsName].length} Siswa</span></h6></div>`;
         
-        if(sortedClasses.length === 0) {
-            html = '<div class="col-12 text-center text-muted fst-italic py-4">Tidak ada siswa di angkatan ini.</div>';
-        }
+        // Kartu Siswa
+        grouped[clsName].forEach(u => {
+            // 🔥 ANALISIS MOOD BERDASARKAN ARRAY 'mood_history' ATAU SINGLE VALUE 'mood'
+            let statusClass = ''; 
+            let statusText = '';
+            let dominantMood = 'neutral';
 
-        sortedClasses.forEach(clsName => {
-            // Header Kelas
-            html += `<div class="col-12 mt-4"><h6 class="fw-bold text-primary border-bottom pb-2">${clsName} <span class="badge bg-light text-dark ms-2">${grouped[clsName].length} Siswa</span></h6></div>`;
+            // Jika ada history (disimpan sebagai array string: ['sad', 'happy', ...])
+            if (u.mood_history && Array.isArray(u.mood_history) && u.mood_history.length > 0) {
+                const counts = { sad: 0, angry: 0, happy: 0, neutral: 0 };
+                // Ambil 7 terakhir
+                const last7 = u.mood_history.slice(-7);
+                last7.forEach(m => { if(counts[m] !== undefined) counts[m]++; });
+                
+                // Logika Peringatan
+                if (counts.sad + counts.angry > counts.happy) {
+                    statusClass = 'status-danger';
+                    statusText = '⚠️ SISWA PERLU PERHATIAN KHUSUS';
+                    dominantMood = 'sad';
+                } else if (counts.happy > (counts.sad + counts.angry + counts.neutral)) {
+                        statusClass = 'status-success';
+                        statusText = '🌟 PERLU APRESIASI';
+                        dominantMood = 'happy';
+                }
+            } 
+            // Fallback: Pakai Mood Score (0-100) jika history kosong
+            else {
+                const score = u.mood || 50;
+                if(score <= 30) {
+                    statusClass = 'status-danger';
+                    statusText = '⚠️ Mood Cenderung Rendah';
+                } else if (score >= 80) {
+                    statusClass = 'status-success';
+                    statusText = '🌟 Mood Sangat Baik';
+                }
+            }
+
+            const avaUrl = getAvatarUrl(u.avatar, 'student');
             
-            // Kartu Siswa
-            grouped[clsName].forEach(u => {
-                const mc = (u.mood||50)<30?'bg-danger':(u.mood>70?'bg-success':'bg-warning');
-                const avaUrl = getAvatarUrl(u.avatar, 'student');
-                html += `
-                <div class="col-md-6 col-lg-4 student-card-item">
-                    <div class="card h-100 p-3 shadow-sm border-0">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="position-relative">
-                                <img src="${avaUrl}" class="rounded-circle border" width="50" height="50" style="object-fit:cover;">
-                                <span class="position-absolute bottom-0 end-0 p-1 rounded-circle border border-white ${mc}"></span>
-                            </div>
-                            <div class="flex-grow-1 overflow-hidden">
-                                <div class="fw-bold text-truncate student-name">${u.name}</div>
-                                <div class="small text-muted">${u.class}</div>
-                            </div>
-                            <button class="btn btn-sm btn-light text-primary rounded-circle" onclick="openTeacherReport('${u.id}', '${u.name}')" title="Raport">
-                                <i class="fas fa-chart-pie"></i>
-                            </button>
+            // Render Card
+            html += `
+            <div class="col-md-6 col-lg-4 student-card-item">
+                <div class="card h-100 p-3 shadow-sm border ${statusClass}">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <img src="${avaUrl}" class="rounded-circle border bg-white" width="50" height="50" style="object-fit:cover;">
+                            <!-- Dot status online/offline style -->
                         </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="fw-bold text-truncate student-name text-dark">${u.name}</div>
+                            <div class="small text-muted">${u.class}</div>
+                            ${statusText ? `<div class="mt-1 badge ${statusClass === 'status-danger' ? 'bg-danger' : 'bg-success'} text-white" style="font-size:0.65rem">${statusText}</div>` : ''}
+                        </div>
+                        <button class="btn btn-sm btn-light text-primary rounded-circle shadow-sm" onclick="openTeacherReport('${u.id}', '${u.name}')" title="Raport">
+                            <i class="fas fa-chart-pie"></i>
+                        </button>
                     </div>
-                </div>`;
-            });
+                </div>
+            </div>`;
         });
-        
-        container.innerHTML = html;
-    } catch(e) { console.error(e); container.innerHTML = '<div class="text-danger">Gagal memuat data.</div>'; }
-};
+    });
+    
+    container.innerHTML = html;
+    
+    // Render Pagination Controls Teacher
+    renderPaginationControls('teacherPagination', currentTeacherPage, totalPages, 'changeTeacherPage');
+}
 
 
         window.filterStudents = () => {
@@ -2940,6 +3508,97 @@ window.fetchStudents = async (gradeFilter = 'X', tabEl) => {
             document.getElementById('studentsContainer').childNodes.forEach(c=>{
                 if(c.nodeType===1) c.style.display = c.innerText.toLowerCase().includes(t)?'block':'none';
             });
+        };
+
+        // --- NEW: TEACHER MESSAGE & HISTORY LOGIC ---
+        function populateMessageTargets() {
+            const select = document.getElementById('msgTarget');
+            // Keep "All" option
+            select.innerHTML = '<option value="ALL">Semua Siswa Perwalian</option>';
+            // Add individuals
+            allStudentsCache.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.uid; // Ensure using UID
+                opt.text = `${s.name} (${s.class})`;
+                select.appendChild(opt);
+            });
+        }
+
+        window.sendDailyMessage = async (e) => {
+            e.preventDefault();
+            const target = getVal('msgTarget');
+            const body = getVal('msgBody');
+            const timestamp = new Date().toISOString();
+            
+            // Determine target Name for display history
+            let targetName = 'Semua Siswa';
+            if(target !== 'ALL') {
+                const s = allStudentsCache.find(x => x.uid === target);
+                if(s) targetName = s.name;
+            }
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'daily_messages'), {
+                    senderUid: currentUser.uid,
+                    senderName: userData.name,
+                    targetUid: target, // 'ALL' or specific UID
+                    targetName: targetName,
+                    body: body,
+                    timestamp: timestamp
+                });
+                alert("Pesan Terkirim!");
+                setVal('msgBody', '');
+                loadMessageHistory(); // Refresh history
+            } catch(e) { alert("Gagal kirim: " + e.message); }
+        };
+
+        window.loadMessageHistory = async () => {
+             // Load cache
+             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'daily_messages'),
+                where('senderUid', '==', currentUser.uid)
+                //, orderBy('timestamp', 'desc') // Requires index, sort in JS instead
+             );
+             
+             try {
+                 const snap = await getDocs(q);
+                 allMsgHistoryCache = [];
+                 snap.forEach(d => allMsgHistoryCache.push({id:d.id, ...d.data()}));
+                 // Sort desc
+                 allMsgHistoryCache.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                 renderMessageHistory();
+             } catch(e) { console.error(e); }
+        };
+
+        window.renderMessageHistory = () => {
+            const container = document.getElementById('msgHistoryBody');
+            
+            const totalPages = Math.ceil(allMsgHistoryCache.length / itemsPerPage);
+            if(currentMsgHistoryPage > totalPages) currentMsgHistoryPage = totalPages || 1;
+            
+            const start = (currentMsgHistoryPage - 1) * itemsPerPage;
+            const paged = allMsgHistoryCache.slice(start, start + itemsPerPage);
+            
+            if(paged.length === 0) {
+                container.innerHTML = '<tr><td colspan="3" class="text-center py-3 small text-muted">Belum ada riwayat pesan.</td></tr>';
+                return;
+            }
+
+            let h = '';
+            paged.forEach(m => {
+                const date = new Date(m.timestamp).toLocaleDateString() + ' ' + new Date(m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                h += `<tr>
+                    <td>${date}</td>
+                    <td><span class="badge bg-light text-dark border">${m.targetName}</span></td>
+                    <td class="text-truncate" style="max-width: 200px;">${m.body}</td>
+                </tr>`;
+            });
+            container.innerHTML = h;
+            renderPaginationControls('msgPagination', currentMsgHistoryPage, totalPages, 'changeMsgHistoryPage');
+        };
+
+        window.changeMsgHistoryPage = (p) => {
+            currentMsgHistoryPage = p;
+            renderMessageHistory();
         };
         
         // --- TEACHER REPORT LOGIC ---
@@ -3178,6 +3837,7 @@ window.filterInbox = (grade, tabEl) => {
                 msgs.forEach(m => {
                     const isMe = m.senderRole === 'teacher';
                     const bubbleClass = isMe ? 'sent' : 'received';
+                    const senderName = isMe ? 'Saya' : 'Guru';
                     const time = new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     
                     h += `<div class="chat-bubble ${bubbleClass}">
@@ -3280,7 +3940,6 @@ window.filterInbox = (grade, tabEl) => {
                     };
                     
                     // Set Values
-                    // setVal('goalFinal', d.final || ''); // Removed old simple input
                     if(!isTeacherMode) {
                         setVal('finalGoalType', finalGoalData.type);
                         setVal('finalGoalReason', finalGoalData.reason);
@@ -3305,6 +3964,46 @@ window.filterInbox = (grade, tabEl) => {
                             statusBadge.className = 'badge bg-secondary';
                             statusBadge.innerText = 'Draft';
                         }
+						
+						// 👇👇👇 TEMPELKAN KODE LOGIKA BARU DI SINI 👇👇👇
+
+                        // --- UPDATE LOGIKA PENGUNCIAN TAB KELAS (X, XI, XII) ---
+                        // 1. Reset tombol tab terlebih dahulu (hapus gembok lama)
+                        const tabX = document.getElementById('tab-x-btn');
+                        const tabXI = document.getElementById('tab-xi-btn');
+                        const tabXII = document.getElementById('tab-xii-btn');
+
+                        [tabX, tabXI, tabXII].forEach(btn => {
+                            if(btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = btn.innerText.replace('🔒 ', ''); 
+                            }
+                        });
+
+                        // 2. Logika Penguncian Berdasarkan Jenjang Kelas Siswa
+                        
+                        // Jika Kelas XI (11): Kunci Tab X
+                        if (studentClassLevel > 10 && tabX) {
+                            tabX.disabled = true;
+                            tabX.innerHTML = `🔒 ${tabX.innerText}`;
+                            // Pindah paksa ke tab XI jika user sedang melihat tab X
+                            if(tabX.classList.contains('active')) {
+                                tabXI.click(); 
+                            }
+                        }
+
+                        // Jika Kelas XII (12): Kunci Tab X dan XI
+                        if (studentClassLevel > 11 && tabXI) {
+                            tabXI.disabled = true;
+                            tabXI.innerHTML = `🔒 ${tabXI.innerText}`;
+                            // Pindah paksa ke tab XII
+                            if(tabXI.classList.contains('active') || (tabX && tabX.classList.contains('active'))) {
+                                tabXII.click();
+                            }
+                        }
+                        
+                        // 👆👆👆 AKHIR KODE BARU 👆👆👆
+						
                     }
 
                     teacherNoteVal = d.teacherNote || "Belum ada catatan.";
@@ -3320,12 +4019,21 @@ window.filterInbox = (grade, tabEl) => {
                 if(isTeacherMode) {
                     renderTeacherReportView();
                 } else {
-                    renderGoalList('x', 'goalsListX', studentClassLevel === 10);
-                    renderGoalList('xi', 'goalsListXI', studentClassLevel <= 11);
-                    renderGoalList('xii', 'goalsListXII', true);
+                    // UPDATE: Logika Edit Peta Masa Depan
+                    // Sekarang bisa diedit SELAMA belum dikunci (reportLocked[key] == false)
+                    // Tidak lagi dibatasi oleh jenjang kelas (studentClassLevel)
+                    renderGoalList('x', 'goalsListX', !reportLocked.x);
+                    renderGoalList('xi', 'goalsListXI', !reportLocked.xi);
+                    renderGoalList('xii', 'goalsListXII', !reportLocked.xii);
 
-                    if(studentClassLevel > 10) document.querySelector('#tab-x-content button').style.display = 'none';
-                    if(studentClassLevel > 11) document.querySelector('#tab-xi-content button').style.display = 'none';
+                    // Pastikan tombol tambah muncul jika belum dikunci
+                    const btnX = document.querySelector('#tab-x-content button');
+                    const btnXI = document.querySelector('#tab-xi-content button');
+                    const btnXII = document.querySelector('#tab-xii-content button');
+                    
+                    if(btnX) btnX.style.display = reportLocked.x ? 'none' : 'inline-block';
+                    if(btnXI) btnXI.style.display = reportLocked.xi ? 'none' : 'inline-block';
+                    if(btnXII) btnXII.style.display = reportLocked.xii ? 'none' : 'inline-block';
                     
                     renderStudentReportView();
                 }
@@ -3580,8 +4288,16 @@ window.filterInbox = (grade, tabEl) => {
             let total = 0, achieved = 0;
             let listHtml = '';
 
+            // NEW: Tombol Buka Kunci untuk Guru
+            let statusBadge = isLocked 
+                ? `<span class="badge bg-danger"><i class="fas fa-lock me-1"></i>Terkunci</span> <button class="btn btn-sm btn-outline-danger ms-2 no-print" onclick="unlockReportTeacher('${key}')" style="font-size: 0.7rem;"><i class="fas fa-key me-1"></i>Buka Kunci</button>` 
+                : `<span class="badge bg-success"><i class="fas fa-unlock me-1"></i>Terbuka</span>`;
+
             if(items.length > 0) {
-                listHtml += `<div class="bg-light p-2 rounded mb-2 border no-print small text-muted"><i class="fas ${isLocked ? 'fa-lock text-danger' : 'fa-unlock text-success'} me-2"></i>Status: ${isLocked ? 'Terkunci (Sudah dikirim)' : 'Belum dikunci siswa'}</div>`;
+                listHtml += `<div class="bg-light p-2 rounded mb-2 border no-print small d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-bold">Status Laporan:</span>
+                    <div>${statusBadge}</div>
+                </div>`;
                 
                 items.forEach((item, idx) => {
                     total++;
@@ -3597,6 +4313,11 @@ window.filterInbox = (grade, tabEl) => {
                         <div class="only-print small fw-bold">${item.d ? 'OK' : '-'}</div>
                     </div>`;
                 });
+            } else {
+                 listHtml += `<div class="bg-light p-2 rounded mb-2 border no-print small d-flex justify-content-between align-items-center">
+                    <span class="text-muted fw-bold">Status Laporan:</span>
+                    <div>${statusBadge}</div>
+                </div><div class="text-muted small text-center py-3">Siswa belum mengisi target.</div>`;
             }
 
             const percent = total === 0 ? 0 : Math.round((achieved / total) * 100);
@@ -3650,7 +4371,7 @@ window.filterInbox = (grade, tabEl) => {
                             <div class="small text-success">Terwujud: ${achieved}</div>
                         </div>
                     </div>
-                    <div class="mb-4">${listHtml || '<div class="text-muted small">Siswa belum mengisi target.</div>'}</div>
+                    <div class="mb-4">${listHtml}</div>
                     
                     ${finalGoalHtml}
 
@@ -3670,6 +4391,27 @@ window.filterInbox = (grade, tabEl) => {
                     <button class="btn btn-primary flex-fill rounded-pill" onclick="saveTeacherNote()">Simpan Catatan</button>
                 </div>
             `;
+        };
+
+        // NEW FUNCTION: Unlock Report Logic
+        window.unlockReportTeacher = async (key) => {
+            if(!confirm(`Buka kunci laporan Kelas ${key.toUpperCase()} untuk siswa ini? Siswa akan bisa mengedit kembali.`)) return;
+            
+            // Update local state temporarily for UI responsiveness
+            reportLocked[key] = false;
+            
+            try {
+                const ref = doc(db,'artifacts',appId,'users',currentStudentReportId,'goals','main');
+                // Menggunakan sintaks update field nested Firestore "field.subfield"
+                await updateDoc(ref, { [`locked.${key}`]: false }); 
+                
+                // Refresh view
+                renderTeacherReportView();
+            } catch(e) { 
+                alert("Gagal membuka kunci: " + e.message);
+                // Reload to revert state if failed
+                loadGoals(currentStudentReportId, true);
+            }
         };
 
         // --- RENDER TEACHER SKILLS VIEW (New Function) ---
@@ -3939,11 +4681,13 @@ function updateInboxBadge(count) {
 }
 
 
-async function loadGuruFromDatabase() {
-    const select = document.getElementById('signupTeacher');
+async function loadGuruFromDatabase(elementId = 'signupTeacher') {
+    const select = document.getElementById(elementId);
     if (!select) return;
 
-    select.innerHTML = '<option value="">Memuat data guru...</option>';
+    // Keep default option
+    const defaultText = elementId === 'signupTeacher' ? 'Pilih Guru Wali' : '-- Pilih Guru Wali --';
+    select.innerHTML = `<option value="">Memuat data...</option>`;
 
     try {
         const q = query(
@@ -3952,14 +4696,23 @@ async function loadGuruFromDatabase() {
         );
 
         const snap = await getDocs(q);
-
-        select.innerHTML = '<option value="">Pilih Guru Wali</option>';
+        
+        select.innerHTML = `<option value="">${defaultText}</option>`;
+        
+        if (snap.empty) {
+             const opt = document.createElement('option');
+             opt.text = "Tidak ada data guru";
+             opt.disabled = true;
+             select.appendChild(opt);
+             return;
+        }
 
         snap.forEach(d => {
             const g = d.data();
-            select.innerHTML += `
-                <option value="${d.id}">${g.name}</option>
-            `;
+            const opt = document.createElement('option');
+            opt.value = d.id; // Use Doc ID as UID
+            opt.text = g.name;
+            select.appendChild(opt);
         });
 
     } catch (e) {
