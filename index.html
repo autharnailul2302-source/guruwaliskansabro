@@ -547,6 +547,34 @@
         .report-item:hover { transform: translateX(3px); border-color: var(--primary-color); }
         .report-item.done { border-left: 4px solid var(--success-color); background: #f0fdf4; }
         
+        /* NEW: Personality Eval Styles */
+        .eval-section {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .eval-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .eval-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .eval-select {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            min-width: 110px;
+            cursor: pointer;
+        }
+        .eval-select.better { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; font-weight: 600; }
+        .eval-select.solved { background-color: #dbeafe; color: #1e40af; border-color: #bfdbfe; font-weight: 600; }
+
         .donut-chart {
             width: 150px;
             height: 150px;
@@ -675,14 +703,16 @@
             </div>
             
             <!-- TEACHER MODAL TABS -->
-            <ul class="nav nav-tabs nav-fill bg-light border-bottom-0 pt-2 px-2" id="teacherModalTabs">
-                <li class="nav-item">
-                    <a class="nav-link active small py-2" onclick="switchTeacherModalView('goals')" href="#">Evaluasi Diri</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link small py-2" onclick="switchTeacherModalView('skills')" href="#">Keahlian</a>
-                </li>
-            </ul>
+          <!-- TEACHER MODAL TABS (FIXED LAYOUT) -->
+            <div class="bg-light border-bottom flex-shrink-0">
+                <ul class="nav nav-pills flex-nowrap overflow-auto p-2 gap-2" id="teacherModalTabs" style="scrollbar-width: none; -ms-overflow-style: none; white-space: nowrap;">
+                    <li class="nav-item"><a class="nav-link active small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('profile')" href="#">Profil</a></li>
+                    <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('goals')" href="#">Raport</a></li>
+                    <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('achievements')" href="#">Prestasi</a></li>
+                    <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('org')" href="#">Organisasi</a></li>
+                    <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('skills')" href="#">Keahlian</a></li>
+                </ul>
+            </div>
 
             <div class="card-body overflow-auto" id="teacherReportContent">
                 <!-- Content injected via JS -->
@@ -1970,6 +2000,13 @@ function updateHeroRole(role) {
         let goalObjects = { x: [], xi: [], xii: [] }; // Stores objects {t, d} for Report Tab
         let reportLocked = { x: false, xi: false, xii: false }; // Stores Lock Status
         
+        // NEW: Personality Evaluation State
+        let personalityEvalData = {
+            x: { char: {}, interest: {}, diff: {} },
+            xi: { char: {}, interest: {}, diff: {} },
+            xii: { char: {}, interest: {}, diff: {} }
+        };
+
         // NEW: Final Goal State
         let finalGoalData = {
             type: "",
@@ -2327,13 +2364,19 @@ function updateHeroRole(role) {
                 bnHtml += `<div class="nav-icon" data-target="${l.id}" onclick="switchTab('${l.id}', this); ${funcCall}"><i class="fas ${l.icon}"></i><span>${l.label}</span></div>`;
             });
             sidebar.innerHTML = sbHtml;
+			
+			// --- UPDATE: SELALU SEMBUNYIKAN BOTTOM NAV (REQUEST USER) ---
+            bottom.innerHTML = ''; 
+            hide('bottomNav'); 
+			
+			
             if(role === 'student') {
-                bottom.innerHTML = bnHtml;
-                show('bottomNav');
+               // bottom.innerHTML = bnHtml;
+                //show('bottomNav');
                 setTimeout(() => window.switchTab(links[0].id, null), 100);
             } else {
-                bottom.innerHTML = '';
-                hide('bottomNav');
+                //bottom.innerHTML = '';
+                //hide('bottomNav');
                 setTimeout(() => {
                     window.switchTab(links[0].id, null);
                     // UPDATE: Panggil loadAdminHome jika admin
@@ -3085,18 +3128,26 @@ function updateHeroRole(role) {
         }
 
         // --- ORGANIZATIONS LOGIC ---
-        async function loadOrganizations(uid) {
+       // --- ORGANIZATIONS LOGIC (UPDATED) ---
+        async function loadOrganizations(uid, isTeacherMode = false) {
             if(!uid) return;
-            const container = document.getElementById('orgListContainer');
-            container.innerHTML = '<div class="text-center small text-muted py-3">Memuat data...</div>';
+            if(!isTeacherMode) {
+                const container = document.getElementById('orgListContainer');
+                if(container) container.innerHTML = '<div class="text-center small text-muted py-3">Memuat data...</div>';
+            }
             
             try {
                 const s = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'organizations', 'main'));
                 organizationList = s.exists() ? (s.data().list || []) : [];
-                renderOrganizations();
+                
+                if(isTeacherMode) {
+                    renderTeacherOrgView(); // Fungsi baru (nanti dibuat di Langkah 4)
+                } else {
+                    renderOrganizations();
+                }
             } catch(e) {
                 console.error("Load Org Error:", e);
-                container.innerHTML = '<div class="text-danger small">Gagal memuat data.</div>';
+                if(!isTeacherMode) document.getElementById('orgListContainer').innerHTML = '<div class="text-danger small">Gagal memuat data.</div>';
             }
         }
 
@@ -3181,21 +3232,30 @@ function updateHeroRole(role) {
         };
         
         // --- ACHIEVEMENTS LOGIC ---
-        async function loadAchievements(uid) {
+        // --- ACHIEVEMENTS LOGIC (UPDATED) ---
+        async function loadAchievements(uid, isTeacherMode = false) {
             if(!uid) return;
-            const container = document.getElementById('achievementListContainer');
-            container.innerHTML = '<div class="text-center small text-muted py-3">Memuat data...</div>';
+            // Hanya bersihkan container siswa jika bukan mode guru
+            if(!isTeacherMode) {
+                const container = document.getElementById('achievementListContainer');
+                if(container) container.innerHTML = '<div class="text-center small text-muted py-3">Memuat data...</div>';
+            }
             
             try {
                 const s = await getDoc(doc(db, 'artifacts', appId, 'users', uid, 'achievements', 'main'));
                 achievementsList = s.exists() ? (s.data().list || []) : [];
-                renderAchievements();
+                
+                if(isTeacherMode) {
+                    renderTeacherAchievementsView(); // Fungsi baru (nanti dibuat di Langkah 4)
+                } else {
+                    renderAchievements();
+                }
             } catch(e) {
                 console.error("Load Achievements Error:", e);
-                container.innerHTML = '<div class="text-danger small">Gagal memuat data.</div>';
+                if(!isTeacherMode) document.getElementById('achievementListContainer').innerHTML = '<div class="text-danger small">Gagal memuat data.</div>';
             }
         }
-
+		
         window.renderAchievements = () => {
             const container = document.getElementById('achievementListContainer');
             if(achievementsList.length === 0) {
@@ -3620,14 +3680,32 @@ function renderTeacherStudents() {
             currentStudentReportId = null;
         };
 
+      // --- TEACHER MODAL NAVIGATION (UPDATED) ---
         window.switchTeacherModalView = (view) => {
-            document.querySelectorAll('#teacherModalTabs .nav-link').forEach(el => el.classList.remove('active'));
+            // Update Active Tab Class
+            const tabs = document.querySelectorAll('#teacherModalTabs .nav-link');
+            tabs.forEach(el => el.classList.remove('active'));
+            
+            // Map view string to tab index (0:Profile, 1:Goals, 2:Ach, 3:Org, 4:Skills)
+            // Sesuaikan urutan index dengan urutan <li> di HTML Langkah 1
+            const map = { 'profile':0, 'goals':1, 'achievements':2, 'org':3, 'skills':4 };
+            if(tabs[map[view]]) tabs[map[view]].classList.add('active');
+
+            // Show Loading
+            const content = document.getElementById('teacherReportContent');
+            content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 small text-muted">Memuat data...</p></div>';
+
+            // Route Logic
             if(view === 'goals') {
-                document.querySelector('#teacherModalTabs li:first-child a').classList.add('active');
                 loadGoals(currentStudentReportId, true);
             } else if(view === 'skills') {
-                document.querySelector('#teacherModalTabs li:last-child a').classList.add('active');
                 loadSkills(currentStudentReportId, true);
+            } else if(view === 'profile') {
+                renderTeacherProfileView();
+            } else if(view === 'achievements') {
+                loadAchievements(currentStudentReportId, true);
+            } else if(view === 'org') {
+                loadOrganizations(currentStudentReportId, true);
             }
         };
 
@@ -3906,6 +3984,11 @@ window.filterInbox = (grade, tabEl) => {
                     else if (classStr.startsWith('XI')) studentClassLevel = 11;
                     else studentClassLevel = 10;
                 }
+                
+                // NEW: Pastikan Personality Data Termuat untuk User/Siswa Tersebut (Penting untuk Guru)
+                if(targetUid !== currentUser.uid || !personalityData.char) {
+                     await loadPersonality(targetUid);
+                }
 
                 // 2. Fetch Data
                 const s = await getDoc(doc(db,'artifacts',appId,'users',targetUid,'goals','main'));
@@ -3931,6 +4014,13 @@ window.filterInbox = (grade, tabEl) => {
                     // Locked states
                     reportLocked = d.locked || { x: false, xi: false, xii: false };
                     
+                    // NEW: Load Personality Eval Map from DB
+                    personalityEvalData = d.personalityEval || {
+                        x: { char: {}, interest: {}, diff: {} },
+                        xi: { char: {}, interest: {}, diff: {} },
+                        xii: { char: {}, interest: {}, diff: {} }
+                    };
+
                     // NEW: Final Goal Data Map
                     finalGoalData = {
                         type: d.finalGoalType || "",
@@ -4012,6 +4102,7 @@ window.filterInbox = (grade, tabEl) => {
                     currentGoals = { x: [], xi: [], xii: [] };
                     goalObjects = { x: [], xi: [], xii: [] };
                     reportLocked = { x: false, xi: false, xii: false };
+                    personalityEvalData = { x: { char: {}, interest: {}, diff: {} }, xi: { char: {}, interest: {}, diff: {} }, xii: { char: {}, interest: {}, diff: {} } };
                     finalGoalData = { type: "", reason: "", confidence: "", locked: false };
                     teacherNoteVal = "Belum ada catatan.";
                 }
@@ -4120,6 +4211,8 @@ window.filterInbox = (grade, tabEl) => {
                 finalGoalReason: getVal('finalGoalReason'),
                 finalGoalConfidence: getVal('finalGoalConfidence'),
                 finalGoalLocked: finalGoalData.locked, // Use state variable
+                // NEW: Save Personality Eval
+                personalityEval: personalityEvalData,
                 teacherNote: teacherNoteVal,
                 locked: reportLocked 
             };
@@ -4142,6 +4235,43 @@ window.filterInbox = (grade, tabEl) => {
             document.getElementById(`rep-${tab}-btn`).classList.add('active');
             renderStudentReportView(); // Re-render with active tab
         }
+        
+        // NEW: Function to Update Personality Eval State (Auto Save UI)
+        window.updatePersonalityEvalState = async (grade, type, index, value) => {
+            if(reportLocked[grade]) return;
+            
+            if(!personalityEvalData[grade]) personalityEvalData[grade] = { char: {}, interest: {}, diff: {} };
+            if(!personalityEvalData[grade][type]) personalityEvalData[grade][type] = {};
+            
+            personalityEvalData[grade][type][index] = value;
+            
+            // Auto Save UI State (Coloring)
+            const elId = `eval-${grade}-${type}-${index}`;
+            const el = document.getElementById(elId);
+            if(el) {
+                el.className = 'form-select eval-select'; // reset
+                if(value === 'better') el.classList.add('better');
+                if(value === 'solved') el.classList.add('solved');
+            }
+
+            // Silent Save to DB
+            try {
+                // Construct clean data similar to saveGoals but keep existing goals
+                const cleanData = {
+                    sem1: goalObjects.x,
+                    sem3: goalObjects.xi,
+                    sem5: goalObjects.xii,
+                    finalGoalType: finalGoalData.type,
+                    finalGoalReason: finalGoalData.reason,
+                    finalGoalConfidence: finalGoalData.confidence,
+                    finalGoalLocked: finalGoalData.locked,
+                    personalityEval: personalityEvalData, // The important part
+                    teacherNote: teacherNoteVal,
+                    locked: reportLocked 
+                };
+                await setDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'goals','main'), cleanData);
+            } catch(e) { console.error("Auto-save eval failed", e); }
+        };
 
         window.renderStudentReportView = () => {
             const key = activeReportTab; // x, xi, or xii
@@ -4169,6 +4299,69 @@ window.filterInbox = (grade, tabEl) => {
                     </div>
                 </div>`;
             });
+            
+            // --- NEW: RENDER PERSONALITY EVAL SECTION (STUDENT) ---
+            const generateEvalRow = (label, list, type, options) => {
+                if(!list || list.length === 0) return '';
+                let rows = `<div class="small fw-bold text-muted mb-2">${label}</div>`;
+                
+                list.forEach((itemText, idx) => {
+                    const savedVal = personalityEvalData[key]?.[type]?.[idx] || '';
+                    const disabled = isLocked ? 'disabled' : '';
+                    let selectClass = 'eval-select';
+                    if(savedVal === 'better') selectClass += ' better';
+                    if(savedVal === 'solved') selectClass += ' solved';
+
+                    let optsHtml = options.map(opt => 
+                        `<option value="${opt.val}" ${savedVal === opt.val ? 'selected' : ''}>${opt.label}</option>`
+                    ).join('');
+
+                    rows += `
+                    <div class="eval-row">
+                        <span class="small text-dark">${itemText}</span>
+                        <select id="eval-${key}-${type}-${idx}" class="form-select ${selectClass}" ${disabled} 
+                            onchange="updatePersonalityEvalState('${key}', '${type}', ${idx}, this.value)">
+                            ${optsHtml}
+                        </select>
+                    </div>`;
+                });
+                return rows;
+            };
+
+            const charList = personalityData.char || [];
+            const interestList = personalityData.interest || [];
+            const diffList = [...(personalityData.diffStudy||[]), ...(personalityData.diffLife||[])];
+
+            let persEvalHtml = '';
+            
+            if(charList.length > 0 || interestList.length > 0 || diffList.length > 0) {
+                 persEvalHtml += `<div class="mt-4"><h6 class="fw-bold small text-secondary border-bottom pb-2 mb-3">Evaluasi Diri & Kepribadian</h6>`;
+                 
+                 // Section 1: Sifat & Minat
+                 if(charList.length > 0 || interestList.length > 0) {
+                     persEvalHtml += `<div class="eval-section">`;
+                     persEvalHtml += generateEvalRow("Sifat / Karakter", charList, 'char', [
+                         {val: 'same', label: 'Tetap'}, {val: 'better', label: 'Lebih Baik'}
+                     ]);
+                     if(charList.length > 0 && interestList.length > 0) persEvalHtml += `<hr class="my-2" style="border-style:dashed; opacity:0.3;">`;
+                     persEvalHtml += generateEvalRow("Minat & Bakat", interestList, 'interest', [
+                         {val: 'same', label: 'Tetap'}, {val: 'better', label: 'Lebih Baik'}
+                     ]);
+                     persEvalHtml += `</div>`;
+                 }
+
+                 // Section 2: Kesulitan
+                 if(diffList.length > 0) {
+                      persEvalHtml += `<div class="eval-section border-danger border-opacity-25 bg-danger bg-opacity-10">`;
+                      persEvalHtml += generateEvalRow("Daftar Kesulitan", diffList, 'diff', [
+                         {val: 'unsolved', label: 'Belum'}, {val: 'solved', label: 'Teratasi'}
+                     ]);
+                      persEvalHtml += `</div>`;
+                 }
+                 persEvalHtml += `</div>`;
+            } else {
+                persEvalHtml = `<div class="alert alert-light border mt-4 small"><i class="fas fa-info-circle me-1"></i>Isi data di menu "Personality" agar bisa dievaluasi disini.</div>`;
+            }
 
             const percent = total === 0 ? 0 : Math.round((achieved / total) * 100);
             
@@ -4189,14 +4382,17 @@ window.filterInbox = (grade, tabEl) => {
                 </div>
 
                 <!-- List -->
-                <div class="mb-4">
-                    <h6 class="small fw-bold text-muted border-bottom pb-2 mb-3">Daftar Target (Checklist)</h6>
+                <div class="mb-2">
+                    <h6 class="small fw-bold text-muted border-bottom pb-2 mb-3">Target Pencapaian (Goals)</h6>
                     <div>${listHtml || '<div class="text-center small text-muted">Belum ada target.</div>'}</div>
                 </div>
                 
+                <!-- NEW: Inserted Personality Eval -->
+                ${persEvalHtml}
+                
                 <!-- Lock Button -->
-                ${!isLocked && total > 0 ? `
-                <div class="alert alert-warning d-flex align-items-center mb-0">
+                ${!isLocked ? `
+                <div class="alert alert-warning d-flex align-items-center mb-0 mt-4">
                     <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
                     <div class="small lh-sm flex-grow-1">Jika sudah selesai, kunci laporan untuk dikirim ke Wali Kelas.</div>
                 </div>
@@ -4225,6 +4421,8 @@ window.filterInbox = (grade, tabEl) => {
                     finalGoalReason: finalGoalData.reason,
                     finalGoalConfidence: finalGoalData.confidence,
                     finalGoalLocked: finalGoalData.locked,
+                    // Preserve Eval
+                    personalityEval: personalityEvalData,
                     teacherNote: teacherNoteVal,
                     locked: reportLocked
                 };
@@ -4251,6 +4449,7 @@ window.filterInbox = (grade, tabEl) => {
                     finalGoalReason: finalGoalData.reason,
                     finalGoalConfidence: finalGoalData.confidence,
                     finalGoalLocked: finalGoalData.locked,
+                    personalityEval: personalityEvalData,
                     teacherNote: teacherNoteVal,
                     locked: reportLocked
                 };
@@ -4322,6 +4521,52 @@ window.filterInbox = (grade, tabEl) => {
 
             const percent = total === 0 ? 0 : Math.round((achieved / total) * 100);
 
+            // --- NEW: TEACHER VIEW PERSONALITY EVAL (READ ONLY) ---
+            const generateTeacherEvalRow = (label, list, type) => {
+                if(!list || list.length === 0) return '';
+                let rows = `<div class="small fw-bold text-muted mb-2">${label}</div>`;
+                
+                list.forEach((itemText, idx) => {
+                    const savedVal = personalityEvalData[key]?.[type]?.[idx] || '';
+                    let badge = '<span class="badge bg-light text-dark border">-</span>';
+                    
+                    if(savedVal === 'better') badge = '<span class="badge bg-success">Lebih Baik</span>';
+                    if(savedVal === 'same') badge = '<span class="badge bg-secondary">Tetap</span>';
+                    if(savedVal === 'solved') badge = '<span class="badge bg-primary">Teratasi</span>';
+                    if(savedVal === 'unsolved') badge = '<span class="badge bg-danger">Belum</span>';
+
+                    rows += `
+                    <div class="d-flex justify-content-between align-items-center mb-1 border-bottom border-light pb-1">
+                        <span class="small text-dark">${itemText}</span>
+                        ${badge}
+                    </div>`;
+                });
+                return rows;
+            };
+
+            const charList = personalityData.char || [];
+            const interestList = personalityData.interest || [];
+            const diffList = [...(personalityData.diffStudy||[]), ...(personalityData.diffLife||[])];
+
+            let persEvalHtml = '';
+            
+            if(charList.length > 0 || interestList.length > 0 || diffList.length > 0) {
+                 persEvalHtml += `<div class="mt-4 border p-3 rounded bg-white"><h6 class="fw-bold small text-primary border-bottom pb-2 mb-3">Evaluasi Kepribadian Siswa</h6>`;
+                 
+                 if(charList.length > 0 || interestList.length > 0) {
+                     persEvalHtml += generateTeacherEvalRow("Sifat & Minat", charList, 'char');
+                     persEvalHtml += generateTeacherEvalRow("", interestList, 'interest'); 
+                 }
+
+                 if(diffList.length > 0) {
+                      persEvalHtml += `<div class="mt-3"></div>`;
+                      persEvalHtml += generateTeacherEvalRow("Kesulitan & Hambatan", diffList, 'diff');
+                 }
+                 persEvalHtml += `</div>`;
+            } else {
+                 persEvalHtml = `<div class="mt-4 p-3 border rounded bg-light text-muted small text-center fst-italic">Siswa belum mengisi data personality.</div>`;
+            }
+
             // Final Goal Section for Teacher
             const finalGoalHtml = `
             <div class="mt-4 pt-3 border-top">
@@ -4373,6 +4618,8 @@ window.filterInbox = (grade, tabEl) => {
                     </div>
                     <div class="mb-4">${listHtml}</div>
                     
+                    ${persEvalHtml}
+
                     ${finalGoalHtml}
 
                     <div class="mb-3 no-print mt-4">
@@ -4753,6 +5000,116 @@ function listenInboxTeacher() {
     });
 }
 
+
+
+// --- NEW: RENDER TAMPILAN PROFIL (GURU VIEW) ---
+        window.renderTeacherProfileView = async () => {
+            const container = document.getElementById('teacherReportContent');
+            try {
+                // Ambil data profil siswa terbaru
+                const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentStudentReportId));
+                if(docSnap.exists()) {
+                    const u = docSnap.data();
+                    const ava = getAvatarUrl(u.avatar, 'student');
+                    // Format nomor WA
+                    const phoneLink = u.phone ? `https://wa.me/${u.phone.replace(/^0/,'62').replace(/\D/g,'')}` : '#';
+                    
+                    container.innerHTML = `
+                        <div class="text-center mb-4 mt-3">
+                            <img src="${ava}" class="rounded-circle border p-1 shadow-sm bg-white" width="100" height="100" style="object-fit:cover;">
+                            <h5 class="fw-bold mt-2 mb-0">${u.name}</h5>
+                            <span class="badge bg-primary">${u.class || 'Tanpa Kelas'}</span>
+                        </div>
+                        <div class="card bg-light border-0 shadow-sm mb-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-secondary mb-3 small border-bottom pb-2"><i class="fas fa-id-card me-2"></i>Biodata Lengkap</h6>
+                                <div class="row g-3 small">
+                                    <div class="col-6 text-muted">Tahun Masuk</div>
+                                    <div class="col-6 fw-bold text-end text-dark">${u.batch || '-'}</div>
+                                    
+                                    <div class="col-6 text-muted">No. HP / WA</div>
+                                    <div class="col-6 fw-bold text-end"><a href="${phoneLink}" target="_blank" class="text-decoration-none text-success"><i class="fab fa-whatsapp me-1"></i>${u.phone || '-'}</a></div>
+                                    
+                                    <div class="col-12 text-muted mb-1">Alamat Lengkap</div>
+                                    <div class="col-12 fw-bold bg-white p-2 rounded border text-dark">${u.address || '-'}</div>
+                                    
+                                    <div class="col-12 text-muted mb-1">Hobi & Minat</div>
+                                    <div class="col-12 fw-bold bg-white p-2 rounded border text-dark">${u.hobby || '-'}</div>
+                                    
+                                    <div class="col-12 text-muted mb-1">Cita-Cita</div>
+                                    <div class="col-12 fw-bold bg-white p-2 rounded border text-primary">${u.dream || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                             <a href="${phoneLink}" target="_blank" class="btn btn-success rounded-pill fw-bold"><i class="fab fa-whatsapp me-2"></i>Hubungi Siswa</a>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="text-center text-muted py-5">Data siswa tidak ditemukan.</div>';
+                }
+            } catch(e) { container.innerHTML = '<div class="text-danger p-3">Error: '+e.message+'</div>'; }
+        };
+
+        // --- NEW: RENDER TAMPILAN PRESTASI (GURU VIEW) ---
+        window.renderTeacherAchievementsView = () => {
+            const container = document.getElementById('teacherReportContent');
+            if(achievementsList.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-5 small fst-italic"><i class="fas fa-trophy fa-2x mb-2 text-secondary opacity-25"></i><br>Belum ada data prestasi.</div>';
+                return;
+            }
+            let h = '<h6 class="fw-bold text-primary mb-3 ps-1">Daftar Prestasi Siswa</h6>';
+            achievementsList.forEach(ach => {
+                h += `
+                <div class="card mb-3 border-0 shadow-sm border-start border-4 border-warning">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-warning text-dark" style="font-size:0.65rem">${ach.level}</span>
+                            <small class="text-muted fw-bold" style="font-size:0.7rem">${ach.year}</small>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">${ach.name}</h6>
+                        <div class="small text-muted mb-2">${ach.organizer}</div>
+                        <div>
+                            <span class="badge bg-light text-dark border me-1">${ach.rank}</span>
+                            <span class="badge bg-light text-dark border">${ach.type}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = h;
+        };
+
+        // --- NEW: RENDER TAMPILAN ORGANISASI (GURU VIEW) ---
+        window.renderTeacherOrgView = () => {
+            const container = document.getElementById('teacherReportContent');
+            if(organizationList.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-5 small fst-italic"><i class="fas fa-sitemap fa-2x mb-2 text-secondary opacity-25"></i><br>Belum ada riwayat organisasi.</div>';
+                return;
+            }
+            let h = '<h6 class="fw-bold text-primary mb-3 ps-1">Riwayat Organisasi & Keaktifan</h6>';
+            organizationList.forEach(org => {
+                let badgeClass = 'bg-secondary';
+                if(org.type === 'Intra Sekolah') badgeClass = 'bg-info text-dark';
+                else if(org.type === 'Ekstra Sekolah') badgeClass = 'bg-primary';
+                else badgeClass = 'bg-success';
+
+                h += `
+                <div class="card mb-3 border-0 shadow-sm border-start border-4 border-info">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge ${badgeClass}" style="font-size:0.65rem">${org.type}</span>
+                            <small class="text-muted fw-bold" style="font-size:0.7rem">${org.year}</small>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">${org.name}</h6>
+                        <div class="small fw-bold text-dark">
+                            ${org.position} 
+                            ${org.field ? `<span class="text-muted fw-normal ms-1">(${org.field})</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = h;
+        };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
