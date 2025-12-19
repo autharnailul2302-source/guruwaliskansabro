@@ -1065,6 +1065,25 @@
                         </div>
                     </div>
                 </div>
+				
+				
+				<!-- TAB POLLING SISWA -->
+    <div id="tabStudentPolling" class="view-tab hidden">
+        <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white;">
+            <div class="card-body p-4 text-center">
+                <i class="fas fa-poll fa-3x mb-3 text-white-50"></i>
+                <h4 class="fw-bold">Suara Siswa</h4>
+                <p class="mb-0 opacity-75">Pendapatmu sangat berharga untuk kemajuan sekolah dan aplikasi ini.</p>
+            </div>
+        </div>
+
+        <div id="studentPollContainer">
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary"></div>
+                <div class="mt-2 small">Mencari polling aktif...</div>
+            </div>
+        </div>
+    </div>
 
                 <!-- NEW: PERSONALITY (MENU NO. 1) -->
                 <div id="tabStudentPersonality" class="view-tab hidden">
@@ -1724,6 +1743,8 @@
                 </div>
             </div>
 			
+			
+	
 			<!-- LOG AKTIVITAS SISWA (Masukkan di dalam div t_home, di bawah kartu statistik) -->
 <div class="card border-0 shadow-sm mt-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -1853,6 +1874,102 @@
             </div>
         </div>
     </div>
+	
+			<!-- 5. POLLING MANAGEMEN (GURU) -->
+    <div id="t_polling" class="view-tab hidden">
+        <div class="row g-4">
+            <!-- Kolom Kiri: Form Buat Polling -->
+            <div class="col-md-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold text-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Buat Polling Baru
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="createPoll(event)">
+                            <div class="mb-3">
+                                <label class="small text-muted fw-bold">Judul Polling</label>
+                                <input type="text" id="pollTitle" class="form-control" value="Evaluasi Aplikasi WaliQ" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted fw-bold">Durasi (Hari)</label>
+                                <input type="number" id="pollDuration" class="form-control" value="2" min="1" required>
+                                <small class="text-muted" style="font-size:0.7rem">*Default: 2 Hari</small>
+                            </div>
+                            
+                            <label class="small text-muted fw-bold mb-2">Daftar Pertanyaan (Otomatis)</label>
+                            <div class="bg-light p-3 rounded mb-3 border" style="max-height: 300px; overflow-y:auto;">
+                                <!-- Q1 -->
+                                <div class="mb-3">
+                                    <small class="fw-bold d-block text-dark">1. Komunikasi Guru Wali</small>
+                                    <input type="text" class="form-control form-control-sm mb-1" id="q1_text" value="Apakah aplikasi ini memudahkanmu berkomunikasi dengan Guru Wali?">
+                                    <input type="text" class="form-control form-control-sm bg-white" value="Sangat Setuju, Setuju, Tidak Setuju" disabled>
+                                </div>
+                                <!-- Q2 -->
+                                <div class="mb-3">
+                                    <small class="fw-bold d-block text-dark">2. Kepuasan Aplikasi</small>
+                                    <input type="text" class="form-control form-control-sm mb-1" id="q2_text" value="Apakah kamu senang menggunakan aplikasi ini?">
+                                    <input type="text" class="form-control form-control-sm bg-white" value="Sangat Senang, Senang, Kurang Senang" disabled>
+                                </div>
+                                <!-- Q3 -->
+                                <div class="mb-3">
+                                    <small class="fw-bold d-block text-dark">3. Fitur Peliharaan</small>
+                                    <input type="text" class="form-control form-control-sm mb-1" id="q3_text" value="Apakah fitur 'Peliharaan' membuatmu lebih semangat login?">
+                                    <input type="text" class="form-control form-control-sm bg-white" value="Ya Sangat, Lumayan, Biasa Saja" disabled>
+                                </div>
+                                <!-- Q4 -->
+                                <div class="mb-3">
+                                    <small class="fw-bold d-block text-dark">4. Fitur Evaluasi Diri</small>
+                                    <input type="text" class="form-control form-control-sm mb-1" id="q4_text" value="Apakah fitur 'Evaluasi Diri' membantumu mengenali potensi?">
+                                    <input type="text" class="form-control form-control-sm bg-white" value="Sangat Membantu, Membantu, Kurang" disabled>
+                                </div>
+                                <!-- Q5 -->
+                                <div class="mb-3">
+                                    <small class="fw-bold d-block text-dark">5. Keseluruhan</small>
+                                    <input type="text" class="form-control form-control-sm mb-1" id="q5_text" value="Secara keseluruhan, apa penilaianmu untuk aplikasi ini?">
+                                    <input type="text" class="form-control form-control-sm bg-white" value="Bagus Sekali (A), Cukup (B), Perlu Perbaikan (C)" disabled>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">
+                                <i class="fas fa-paper-plane me-1"></i> Terbitkan Polling
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: List & Hasil -->
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-history me-2"></i>Riwayat & Hasil</span>
+                        <button class="btn btn-sm btn-link" onclick="loadTeacherPolls()"><i class="fas fa-sync"></i></button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="teacherPollList" class="list-group list-group-flush">
+                            <div class="text-center text-muted py-5">Memuat data polling...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Hasil Detail -->
+        <div id="pollResultModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">Hasil Polling</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="pollResultContent">
+                        <!-- Chart injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+			
 
     <!-- 4. PROFIL SAYA (Hanya tampil saat menu Profil diklik) -->
     <div id="t_profile" class="view-tab hidden">
@@ -2526,6 +2643,7 @@ rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
                     { id: 'tabStudentHome', icon: 'fa-home', label: 'Home' },
                     // NEW: Personality Menu
 					{ id: 'tabStudentPet', icon: 'fa-paw', label: 'Peliharaan' }, // <--- TAMBAHKAN INI
+					{ id: 'tabStudentPolling', icon: 'fa-poll', label: 'Suara Siswa' },
                     { id: 'tabStudentPersonality', icon: 'fa-fingerprint', label: 'Personality' },
                     { id: 'tabStudentGoals', icon: 'fa-bullseye', label: 'Goals' },
                     { id: 'tabStudentAchievements', icon: 'fa-trophy', label: 'Prestasi' },
@@ -2546,6 +2664,7 @@ rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
          { id: 't_students', icon: 'fa-users', label: 'Data Siswa', func: 'fetchStudents' },
          { id: 't_daily_msg', icon: 'fa-bullhorn', label: 'Pesan Harian', func: 'loadMessageHistory' }, // NEW
          { id: 't_inbox', icon: 'fa-envelope', label: 'Inbox', func: 'loadTeacherInbox' },
+		 { id: 't_polling', icon: 'fa-chart-bar', label: 'Polling', func: 'loadTeacherPolls' },
          { id: 't_profile', icon: 'fa-user-circle', label: 'Profil Saya', func: 'loadTeacherProfile' }
     ];
             } else if (role === 'admin') {
@@ -5804,6 +5923,294 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => window.changePetBg(savedBg), 500);
     }
 });
+
+
+// --- SISTEM POLLING / SURVEI (Include at bottom) ---
+
+// 1. GURU: LOAD DATA POLLING
+window.loadTeacherPolls = async () => {
+    const container = document.getElementById('teacherPollList');
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+    
+    try {
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        
+        if(snap.empty) {
+            container.innerHTML = '<div class="text-center text-muted py-5 small fst-italic">Belum ada polling yang dibuat.</div>';
+            return;
+        }
+
+        let html = '';
+        snap.forEach(d => {
+            const p = d.data();
+            const created = new Date(p.createdAt).toLocaleDateString();
+            const expired = new Date(p.expiresAt);
+            const isActive = new Date() < expired;
+            const statusBadge = isActive 
+                ? '<span class="badge bg-success">Aktif</span>' 
+                : '<span class="badge bg-secondary">Selesai</span>';
+
+            html += `
+            <div class="list-group-item p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="fw-bold mb-1">${p.title}</h6>
+                        <small class="text-muted"><i class="far fa-clock me-1"></i>Dibuat: ${created} • Berakhir: ${expired.toLocaleDateString()}</small>
+                        <div class="mt-1">${statusBadge} <span class="badge bg-light text-dark border ms-1">${p.participantCount || 0} Responden</span></div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="viewPollResults('${d.id}')">
+                        <i class="fas fa-chart-pie me-1"></i> Hasil
+                    </button>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    } catch(e) { console.error(e); }
+};
+
+// 2. GURU: BUAT POLLING
+window.createPoll = async (e) => {
+    e.preventDefault();
+    if(!confirm("Terbitkan polling ini sekarang?")) return;
+
+    const title = document.getElementById('pollTitle').value;
+    const duration = parseInt(document.getElementById('pollDuration').value) || 2;
+    
+    // Siapkan 5 Pertanyaan Default
+    const questions = [
+        { id: 'q1', text: document.getElementById('q1_text').value, options: ['Sangat Setuju', 'Setuju', 'Tidak Setuju'] },
+        { id: 'q2', text: document.getElementById('q2_text').value, options: ['Sangat Senang', 'Senang', 'Kurang Senang'] },
+        { id: 'q3', text: document.getElementById('q3_text').value, options: ['Ya Sangat', 'Lumayan', 'Biasa Saja'] },
+        { id: 'q4', text: document.getElementById('q4_text').value, options: ['Sangat Membantu', 'Membantu', 'Kurang'] },
+        { id: 'q5', text: document.getElementById('q5_text').value, options: ['Bagus Sekali', 'Cukup', 'Perlu Perbaikan'] }
+    ];
+
+    // Hitung tanggal kedaluwarsa
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setDate(now.getDate() + duration);
+
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), {
+            title: title,
+            questions: questions,
+            createdAt: now.toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            createdBy: currentUser.uid,
+            participantCount: 0
+        });
+        alert("Polling berhasil diterbitkan!");
+        loadTeacherPolls();
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+// 3. GURU: LIHAT HASIL (Statistik)
+window.viewPollResults = async (pollId) => {
+    const modal = new bootstrap.Modal(document.getElementById('pollResultModal'));
+    const content = document.getElementById('pollResultContent');
+    content.innerHTML = '<div class="text-center py-5">Menghitung suara...</div>';
+    modal.show();
+
+    try {
+        // Ambil data Polling
+        const pollSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'polls', pollId));
+        const pollData = pollSnap.data();
+
+        // Ambil semua Jawaban
+        const ansSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'polls', pollId, 'responses'));
+        
+        let stats = {};
+        // Init stats
+        pollData.questions.forEach(q => {
+            stats[q.id] = {};
+            q.options.forEach(opt => stats[q.id][opt] = 0);
+        });
+
+        // Hitung
+        let totalRespondents = 0;
+        ansSnap.forEach(d => {
+            const ans = d.data().answers;
+            totalRespondents++;
+            for (const [qid, val] of Object.entries(ans)) {
+                if(stats[qid] && stats[qid][val] !== undefined) {
+                    stats[qid][val]++;
+                }
+            }
+        });
+
+        // Render Grafik Sederhana (Progress Bar)
+        let html = `<h5 class="mb-3 text-center border-bottom pb-3">${pollData.title} <span class="badge bg-primary ms-2">${totalRespondents} Responden</span></h5>`;
+        
+        pollData.questions.forEach((q, idx) => {
+            html += `<div class="card bg-light border-0 mb-3 p-3"><h6 class="fw-bold mb-3">${idx+1}. ${q.text}</h6>`;
+            
+            q.options.forEach(opt => {
+                const count = stats[q.id][opt] || 0;
+                const percent = totalRespondents === 0 ? 0 : Math.round((count / totalRespondents) * 100);
+                
+                // Warna bar beda-beda
+                let barColor = 'bg-secondary';
+                if(opt.includes('Sangat') || opt.includes('Bagus') || opt.includes('Ya')) barColor = 'bg-success';
+                if(opt.includes('Kurang') || opt.includes('Tidak') || opt.includes('Perlu')) barColor = 'bg-danger';
+                if(opt === 'Setuju' || opt === 'Senang' || opt === 'Lumayan' || opt === 'Cukup') barColor = 'bg-primary';
+
+                html += `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>${opt}</span>
+                        <span class="fw-bold">${count} (${percent}%)</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar ${barColor}" style="width: ${percent}%"></div>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        });
+        
+        content.innerHTML = html;
+
+    } catch(e) { console.error(e); content.innerHTML = "Gagal memuat hasil."; }
+};
+
+// 4. SISWA: LOAD POLLING AKTIF
+window.loadStudentPolls = async () => {
+    // Fungsi ini dipanggil saat switchTab('tabStudentPolling')
+    const container = document.getElementById('studentPollContainer');
+    
+    try {
+        const now = new Date().toISOString();
+        // Ambil polling yang belum expired
+        const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'polls'), where('expiresAt', '>', now));
+        const snap = await getDocs(q);
+
+        if(snap.empty) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="100" class="mb-3 opacity-50">
+                    <h6 class="text-muted">Tidak ada polling aktif saat ini.</h6>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        // Loop polling, Cek apakah siswa sudah menjawab
+        for (const d of snap.docs) {
+            const p = d.data();
+            
+            // Cek subcollection responses (apakah uid saya ada?)
+            // Note: Firestore tidak bisa query subcollection exists dengan mudah tanpa read. 
+            // Kita coba fetch doc ID saya di subcollection responses
+            const myAnsRef = doc(db, 'artifacts', appId, 'public', 'data', 'polls', d.id, 'responses', currentUser.uid);
+            const myAnsSnap = await getDoc(myAnsRef);
+
+            if (myAnsSnap.exists()) {
+                html += `
+                <div class="card mb-3 border-success border bg-success bg-opacity-10">
+                    <div class="card-body d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">${p.title}</h6>
+                            <small class="text-success fw-bold">Sudah diisi. Terima kasih!</small>
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                // Render Form Polling
+                let qHtml = '';
+                p.questions.forEach((q, idx) => {
+                    let opts = '';
+                    q.options.forEach(opt => {
+                        opts += `
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="poll_${d.id}_${q.id}" value="${opt}" id="${d.id}_${q.id}_${opt}">
+                            <label class="form-check-label" for="${d.id}_${q.id}_${opt}">${opt}</label>
+                        </div>`;
+                    });
+                    
+                    qHtml += `
+                    <div class="mb-4">
+                        <h6 class="fw-bold small text-primary mb-2">${idx+1}. ${q.text}</h6>
+                        <div class="ms-2">${opts}</div>
+                    </div>`;
+                });
+
+                html += `
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-white fw-bold">${p.title}</div>
+                    <div class="card-body">
+                        <form onsubmit="submitPoll(event, '${d.id}')">
+                            ${qHtml}
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Kirim Jawaban</button>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-light small text-muted">
+                        Batas Waktu: ${new Date(p.expiresAt).toLocaleDateString()}
+                    </div>
+                </div>`;
+            }
+        }
+        
+        container.innerHTML = html;
+
+    } catch(e) { 
+        console.error(e); 
+        container.innerHTML = '<div class="text-danger text-center">Gagal memuat polling.</div>';
+    }
+};
+
+// 5. SISWA: KIRIM JAWABAN
+window.submitPoll = async (e, pollId) => {
+    e.preventDefault();
+    
+    try {
+        const pollRef = doc(db, 'artifacts', appId, 'public', 'data', 'polls', pollId);
+        const pollSnap = await getDoc(pollRef);
+        const questions = pollSnap.data().questions;
+        
+        let answers = {};
+        let allFilled = true;
+
+        // Collect Answers
+        questions.forEach(q => {
+            const selected = document.querySelector(`input[name="poll_${pollId}_${q.id}"]:checked`);
+            if(!selected) allFilled = false;
+            else answers[q.id] = selected.value;
+        });
+
+        if(!allFilled) return alert("Mohon jawab semua pertanyaan!");
+
+        // Simpan ke Subcollection
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'polls', pollId, 'responses', currentUser.uid), {
+            studentUid: currentUser.uid,
+            studentName: userData.name,
+            class: userData.class,
+            answers: answers,
+            timestamp: new Date().toISOString()
+        });
+
+        // Update Counter di Doc Utama (Atomic Increment is better, but simple update for now)
+        const currentCount = pollSnap.data().participantCount || 0;
+        await updateDoc(pollRef, { participantCount: currentCount + 1 });
+        
+        logUserActivity(`Mengisi Polling: ${pollSnap.data().title}`);
+        
+        // Reward Coin untuk Pet (Jika fitur Pet aktif)
+        if(typeof rewardPetCoins === 'function') rewardPetCoins(20);
+
+        alert("Terima kasih! Jawabanmu telah tersimpan. (+20 Koin Pet)");
+        loadStudentPolls(); // Refresh UI
+
+    } catch(e) { alert("Gagal kirim: " + e.message); }
+};
+
+// Hook ke switchTab agar load data saat tab dibuka
+const originalSwitchTab = window.switchTab;
+window.switchTab = (tabId, navEl) => {
+    originalSwitchTab(tabId, navEl); // Jalan fungsi lama
+    if(tabId === 'tabStudentPolling') loadStudentPolls(); // Fungsi baru
+};
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
