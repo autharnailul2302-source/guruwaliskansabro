@@ -49,6 +49,18 @@
             font-size: 0.7rem;
             margin-left: auto;
         }
+		
+		/* ANIMASI PET */
+@keyframes bounceSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+.animate-bounce-slow {
+    animation: bounceSlow 3s infinite ease-in-out;
+}
+.pet-eating {
+    transform: scale(1.1) rotate(5deg) !important;
+}
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -760,6 +772,14 @@
             </div>
             <i class="fas fa-sign-out-alt text-danger ms-auto"></i>
         </div>
+
+        <!-- 1. CREDIT DI SIDEBAR (Letakkan sebelum penutup tag aside) -->
+        <div class="mt-3 pt-3 border-top text-center opacity-75">
+            <small class="text-muted" style="font-size: 0.6rem;">
+                Created by <b>Nailul Authar</b><br>
+                SMK N 1 Brondong 2025
+            </small>
+        </div>
     </aside>
 
     <!-- MOBILE TOP NAVBAR -->
@@ -901,6 +921,13 @@
                     </div>
 
                 </div>
+                
+                <!-- 2. CREDIT DI HALAMAN LOGIN (Letakkan di bawah kartu login utama) -->
+                <div class="text-center mt-4 text-muted small animate-fade-in">
+                    <small>Developed by <span class="fw-bold text-primary">Nailul Authar</span></small><br>
+                    <small style="font-size: 0.75rem;">SMK N 1 Brondong &copy; 2025</small>
+                </div>
+
             </div>
         </div>
 
@@ -1545,7 +1572,105 @@
                         </div>
                     </div>
                 </div>
+            
+				<!-- SISIPKAN INI DI BAGIAN STUDENT VIEWS (HTML) -->
+
+<div id="tabStudentPet" class="view-tab hidden">
+    <div class="card border-0 shadow-sm" style="background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%);">
+        <div class="card-body text-center p-4">
+            
+            <!-- Header Status -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="bg-white px-3 py-1 rounded-pill shadow-sm small fw-bold text-primary">
+                    Level <span id="petLevel">1</span>
+                </div>
+                <div class="bg-white px-3 py-1 rounded-pill shadow-sm small fw-bold text-warning">
+                    <i class="fas fa-coins me-1"></i> <span id="petCoins">0</span> Koin
+                </div>
             </div>
+
+            <!-- Pet Display Area -->
+            <!-- Pet Display Area (GANTI KODE LAMA DENGAN INI) -->
+            <div id="petContainer" class="position-relative mb-5 mt-4 rounded-4 shadow-sm border" 
+                 style="height: 300px; display: flex; align-items: center; justify-content: center; 
+                        background-image: url('pet/bg.png'); background-size: cover; background-position: center; transition: background 0.5s; overflow: hidden;">
+                
+                <!-- Tombol Pilih Background -->
+                <div class="position-absolute top-0 end-0 p-3 z-2 d-flex gap-2">
+                    <button class="btn btn-sm btn-light rounded-circle shadow border" onclick="changePetBg('pet/bg.png')" title="Background Alam" style="width:36px;height:36px; font-size:1.2rem;">🌳</button>
+                    <button class="btn btn-sm btn-light rounded-circle shadow border" onclick="changePetBg('pet/bg2.png')" title="Background Rumah" style="width:36px;height:36px; font-size:1.2rem;">🏠</button>
+                </div>
+
+                <!-- GAMBAR PET BARU -->
+                <!-- Class 'animate-bounce-slow' membuat hewan bergerak naik-turun halus -->
+                <img src="pet/gemoy.png" id="petImage" class="animate-bounce-slow" width="200" 
+                     style="transition: all 0.3s; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); cursor: pointer;">
+                
+                <!-- Bubble Chat Pet -->
+                <div id="petBubble" class="position-absolute bg-white p-3 rounded-4 shadow-sm small fw-bold text-dark hidden" 
+                     style="top: 30px; left: 20px; max-width: 140px; z-index: 10; border-bottom-left-radius: 0; animation: popUp 0.3s;">
+                    Aku lapar... 🍗
+                </div>
+            </div>
+
+            <!-- Progress Bars (Health, Hunger, Happy) -->
+            <div class="row g-3 mb-4 px-2">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold text-muted"><i class="fas fa-heart text-danger me-1"></i>Kesehatan</span>
+                        <span id="valHealth">100%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 8px;">
+                        <div id="barHealth" class="progress-bar bg-danger" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold text-muted"><i class="fas fa-utensils text-warning me-1"></i>Lapar</span>
+                        <span id="valHunger">100%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 8px;">
+                        <div id="barHunger" class="progress-bar bg-warning" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold text-muted"><i class="fas fa-smile text-primary me-1"></i>Bahagia</span>
+                        <span id="valHappy">100%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 8px;">
+                        <div id="barHappy" class="progress-bar bg-primary" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid grid-cols-3 gap-2 d-flex justify-content-center">
+                <button onclick="petAction('feed')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
+                    <span class="fs-2">🍗</span>
+                    <span class="small fw-bold mt-1">Makan</span>
+                    <span class="text-muted" style="font-size: 0.6rem;">-10 Koin</span>
+                </button>
+                <button onclick="petAction('play')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
+                    <span class="fs-2">⚽</span>
+                    <span class="small fw-bold mt-1">Main</span>
+                    <span class="text-muted" style="font-size: 0.6rem;">-5 Koin</span>
+                </button>
+                <button onclick="petAction('sleep')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
+                    <span class="fs-2">💤</span>
+                    <span class="small fw-bold mt-1">Tidur</span>
+                    <span class="text-muted" style="font-size: 0.6rem;">Free</span>
+                </button>
+            </div>
+            
+            <div class="mt-4 alert alert-info small border-0 bg-info bg-opacity-10">
+                <i class="fas fa-info-circle me-1"></i> <b>Tips:</b> Isi "Mood Harian" atau "Target Belajar" untuk mendapatkan Koin tambahan!
+            </div>
+
+        </div>
+    </div>
+</div>
+			</div>
 
             <!-- --- TEACHER VIEWS --- -->
            <div id="teacherView" class="hidden">
@@ -2208,14 +2333,17 @@ async function logUserActivity(actionDetails) {
                     mood_history: arrayUnion(mood)
 					
                 });
-                
+                // Di dalam handleMoodClick, setelah await updateDoc(...)
+
+// BERIKAN REWARD KOIN
+rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'mood_logs'), {
                     mood: mood,
                     timestamp: new Date().toISOString()
                 });
 				// Di dalam handleMoodClick(), setelah simpan mood:
 					logUserActivity(`Melakukan Check-in Mood: ${mood}`);
-				
+					
             } catch(e) { console.error("Mood Save Error", e); }
         };
 
@@ -2382,6 +2510,9 @@ async function logUserActivity(actionDetails) {
                 document.getElementById('mainSidebar').classList.remove('active');
                 document.getElementById('mobileOverlay').classList.remove('active');
             }
+			if(tabId === 'tabStudentPet') {
+        updatePetUI(); // Refresh tampilan pet saat tab dibuka
+    }
         };
 
         function renderNavigation(role) {
@@ -2391,8 +2522,10 @@ async function logUserActivity(actionDetails) {
 
             if(role === 'student') {
                 links = [
+				
                     { id: 'tabStudentHome', icon: 'fa-home', label: 'Home' },
                     // NEW: Personality Menu
+					{ id: 'tabStudentPet', icon: 'fa-paw', label: 'Peliharaan' }, // <--- TAMBAHKAN INI
                     { id: 'tabStudentPersonality', icon: 'fa-fingerprint', label: 'Personality' },
                     { id: 'tabStudentGoals', icon: 'fa-bullseye', label: 'Goals' },
                     { id: 'tabStudentAchievements', icon: 'fa-trophy', label: 'Prestasi' },
@@ -2908,6 +3041,7 @@ async function logUserActivity(actionDetails) {
                 loadPersonality(currentUser.uid); // NEW: Load Personality
                 initChatListener(currentUser.uid);
                 loadMoodHistory();
+				initPetSystem();
                 
                 // NEW: Load Teacher Info & Greeting
                 if(userData.teacherUid) {
@@ -5461,6 +5595,216 @@ async function loadStudentActivityLogs() {
         }
     }
 }
+
+
+
+// --- LOGIKA GAME WALIPETS (Place at bottom of script) ---
+
+let myPetData = {
+    level: 1,
+    xp: 0,
+    coins: 50, // Modal awal
+    health: 100,
+    hunger: 100,
+    happy: 100,
+    lastUpdate: new Date().toISOString()
+};
+
+// URL GAMBAR (Siapkan untuk diganti nanti)
+// Level 1: Telur/Bayi, Level 2: Remaja, Level 3: Dewasa
+const petSprites = {
+    1: "pet/gemoy.png", // Level 1
+    2: "pet/gemoy2.png", // Level 2 (Bisa diganti gambar lain nanti)
+    3: "pet/gemoy3.png"
+};
+
+// Panggil fungsi ini saat loadStudentDashboard()
+async function initPetSystem() {
+    if(!currentUser) return;
+    try {
+        const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pet', 'main');
+        const snap = await getDoc(docRef);
+        
+        if(snap.exists()) {
+            myPetData = snap.data();
+            calculateDecay(); // Kurangi status berdasarkan waktu offline
+        } else {
+            // Pet Baru
+            await setDoc(docRef, myPetData);
+        }
+        updatePetUI();
+    } catch(e) { console.error("Pet init error", e); }
+}
+
+// Menghitung penurunan status saat ditinggal offline
+function calculateDecay() {
+    const now = new Date();
+    const last = new Date(myPetData.lastUpdate);
+    const diffHours = Math.abs(now - last) / 36e5; // Selisih jam
+
+    if(diffHours > 1) {
+        // Kurangi 5 poin per jam
+        const decay = Math.floor(diffHours * 5);
+        myPetData.hunger = Math.max(0, myPetData.hunger - decay);
+        myPetData.happy = Math.max(0, myPetData.happy - decay);
+        
+        // Jika lapar 0, kesehatan turun
+        if(myPetData.hunger === 0) {
+            myPetData.health = Math.max(0, myPetData.health - Math.floor(decay/2));
+        }
+        savePetData();
+    }
+}
+
+function updatePetUI() {
+    // Update Text
+    document.getElementById('petLevel').innerText = myPetData.level;
+    document.getElementById('petCoins').innerText = myPetData.coins;
+    
+    // Update Bars
+    updateBar('Health', myPetData.health, 'bg-danger');
+    updateBar('Hunger', myPetData.hunger, 'bg-warning');
+    updateBar('Happy', myPetData.happy, 'bg-primary');
+
+    // Update Image berdasarkan Level
+    const imgEl = document.getElementById('petImage');
+    const sprite = petSprites[myPetData.level] || petSprites[1];
+    if(imgEl.src !== sprite) imgEl.src = sprite;
+
+    // Bubble Chat Logika
+    const bubble = document.getElementById('petBubble');
+    if(myPetData.hunger < 30) {
+        bubble.innerText = "Lapar banget... 😭";
+        bubble.classList.remove('hidden');
+    } else if(myPetData.happy < 30) {
+        bubble.innerText = "Main dong! 🥺";
+        bubble.classList.remove('hidden');
+    } else {
+        bubble.classList.add('hidden');
+    }
+}
+
+function updateBar(type, val, colorClass) {
+    document.getElementById(`val${type}`).innerText = val + '%';
+    const bar = document.getElementById(`bar${type}`);
+    bar.style.width = val + '%';
+    // Reset classes and add specific
+    bar.className = `progress-bar ${colorClass}`;
+}
+
+
+// --- PERBAIKAN FUNGSI PET ACTION ---
+
+window.petAction = async (action) => {
+    console.log("Tombol diklik:", action); // Cek apakah tombol merespon
+
+    // Pastikan data pet sudah ada
+    if (!myPetData) {
+        alert("Data peliharaan sedang dimuat, coba sesaat lagi...");
+        return;
+    }
+
+    const imgEl = document.getElementById('petImage');
+    let msg = "";
+
+    if(action === 'feed') {
+        if(myPetData.coins < 10) return alert("Koin tidak cukup! (Butuh 10 Koin). Isi Mood harian dulu untuk dapat koin.");
+        if(myPetData.hunger >= 100) return alert("Perutku sudah penuh!");
+        
+        myPetData.coins -= 10;
+        myPetData.hunger = Math.min(100, myPetData.hunger + 30);
+        myPetData.health = Math.min(100, myPetData.health + 5);
+        myPetData.xp += 10;
+        msg = "Nyam nyam! Enak! 🍗";
+        
+        // Animasi Makan
+        if(imgEl) {
+            imgEl.classList.add('pet-eating');
+            setTimeout(() => imgEl.classList.remove('pet-eating'), 500);
+        }
+
+    } else if (action === 'play') {
+        if(myPetData.coins < 5) return alert("Koin tidak cukup! (Butuh 5 Koin).");
+        if(myPetData.happy >= 100) return alert("Aku sudah sangat senang!");
+
+        myPetData.coins -= 5;
+        myPetData.happy = Math.min(100, myPetData.happy + 25);
+        myPetData.hunger = Math.max(0, myPetData.hunger - 10); // Main bikin lapar
+        myPetData.xp += 15;
+        msg = "Asyik! Seru banget! ⚽";
+
+    } else if (action === 'sleep') {
+        if(myPetData.health >= 100) return alert("Aku segar bugar!");
+        myPetData.health = Math.min(100, myPetData.health + 20);
+        myPetData.happy = Math.max(0, myPetData.happy - 10); 
+        msg = "Zzz... 💤";
+    }
+
+    // Cek Level Up
+    if(myPetData.xp > 100 * myPetData.level) {
+        myPetData.level++;
+        myPetData.xp = 0;
+        alert(`Selamat! Peliharaanmu naik ke Level ${myPetData.level}! 🎉`);
+        // Pastikan fungsi logUserActivity ada sebelum dipanggil
+        if(typeof logUserActivity === 'function') {
+            logUserActivity(`Pet naik level ke ${myPetData.level}`);
+        }
+    }
+
+    // Tampilkan Bubble Pesan
+    const bubble = document.getElementById('petBubble');
+    if(bubble) {
+        bubble.innerText = msg;
+        bubble.classList.remove('hidden');
+        setTimeout(() => bubble.classList.add('hidden'), 2000);
+    }
+
+    // Simpan & Update UI
+    await savePetData();
+    updatePetUI();
+};
+
+async function savePetData() {
+    myPetData.lastUpdate = new Date().toISOString();
+    try {
+        await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pet', 'main'), myPetData);
+    } catch(e) { console.error("Save pet err", e); }
+}
+
+// FUNGSI UTAMA: Tambah Koin (Panggil ini saat user melakukan hal positif di aplikasi)
+async function rewardPetCoins(amount) {
+    // Pastikan data pet sudah terload
+    if(!myPetData) return; 
+    
+    myPetData.coins += amount;
+    await savePetData();
+    updatePetUI();
+    alert(`Kamu mendapatkan +${amount} Koin untuk peliharaanmu! 🪙`);
+}
+
+// --- FUNGSI GANTI BACKGROUND PET ---
+// Letakkan di paling bawah script
+
+window.changePetBg = (bgUrl) => {
+    const container = document.getElementById('petContainer');
+    if(container) {
+        // Ubah gambar CSS
+        container.style.backgroundImage = `url('${bgUrl}')`;
+        // Simpan pilihan user ke memori browser
+        localStorage.setItem('myPetBg', bgUrl);
+    }
+};
+
+// Cek memori saat loading: Apakah user pernah ganti background?
+// Jika ya, pasang background terakhir yang dipilih.
+document.addEventListener("DOMContentLoaded", () => {
+    const savedBg = localStorage.getItem('myPetBg');
+    if(savedBg) {
+        // Tunggu sebentar agar elemen HTML siap
+        setTimeout(() => window.changePetBg(savedBg), 500);
+    }
+});
+
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
