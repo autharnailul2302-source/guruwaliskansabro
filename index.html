@@ -705,13 +705,26 @@
             <!-- TEACHER MODAL TABS -->
           <!-- TEACHER MODAL TABS (FIXED LAYOUT) -->
             <div class="bg-light border-bottom flex-shrink-0">
-                <ul class="nav nav-pills flex-nowrap overflow-auto p-2 gap-2" id="teacherModalTabs" style="scrollbar-width: none; -ms-overflow-style: none; white-space: nowrap;">
-                    <li class="nav-item"><a class="nav-link active small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('profile')" href="#">Profil</a></li>
+			
+    
+    <!-- ... (Biarkan <li> Profil, Raport, Prestasi, Organisasi, Keahlian tetap disitu) ... -->
+
+   
+                <!--ul class="nav nav-pills flex-nowrap overflow-auto p-2 gap-2" id="teacherModalTabs" style="scrollbar-width: none; -ms-overflow-style: none; white-space: nowrap;"-->
+                    <!-- HAPUS style="scrollbar..." yang lama, dan GANTI class-nya -->
+					<ul class="nav nav-pills flex-wrap justify-content-center p-2 gap-2" id="teacherModalTabs">
+					<li class="nav-item"><a class="nav-link active small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('profile')" href="#">Profil</a></li>
                     <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('goals')" href="#">Raport</a></li>
                     <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('achievements')" href="#">Prestasi</a></li>
                     <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('org')" href="#">Organisasi</a></li>
                     <li class="nav-item"><a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('skills')" href="#">Keahlian</a></li>
-                </ul>
+					<!-- Cari id="teacherModalTabs" dan tambahkan baris ini di paling bawah daftar <li> -->
+					 <!-- TAMBAHKAN BARIS INI DI PALING BAWAH (Sebelum penutup </ul>) -->
+					<li class="nav-item">
+					<a class="nav-link small py-1 px-3 border shadow-sm" onclick="switchTeacherModalView('activity')" href="#">Aktivitas</a>
+					</li>
+
+				</ul>
             </div>
 
             <div class="card-body overflow-auto" id="teacherReportContent">
@@ -1585,6 +1598,30 @@
                     </div>
                 </div>
             </div>
+			
+			<!-- LOG AKTIVITAS SISWA (Masukkan di dalam div t_home, di bawah kartu statistik) -->
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-history me-2"></i>Aktivitas Siswa Terbaru</h6>
+        <button class="btn btn-sm btn-light" onclick="loadStudentActivityLogs()"><i class="fas fa-sync-alt"></i></button>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th>Waktu</th>
+                        <th>Siswa</th>
+                        <th>Aktivitas</th>
+                    </tr>
+                </thead>
+                <tbody id="activityLogTableBody" class="small">
+                    <tr><td colspan="3" class="text-center py-3 text-muted">Klik refresh untuk memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 
@@ -2064,8 +2101,29 @@ function updateHeroRole(role) {
             }
             fetchAppKeys();
             loadClasses();
+			loadStudentActivityLogs();
         }
         initApp();
+		
+		
+		// --- FUNGSI BARU: CATAT AKTIVITAS SISWA ---
+async function logUserActivity(actionDetails) {
+    if (!currentUser || userData.role !== 'student') return;
+    
+    try {
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), {
+            studentUid: currentUser.uid,
+            studentName: userData.name,
+            studentClass: userData.class,
+            action: actionDetails,
+            timestamp: new Date().toISOString()
+        });
+        console.log("Aktivitas tercatat:", actionDetails);
+    } catch (e) {
+        console.error("Gagal mencatat aktivitas", e);
+    }
+}
+
 
         // --- HELPERS ---
         const show = (id) => document.getElementById(id)?.classList.remove('hidden');
@@ -2148,12 +2206,16 @@ function updateHeroRole(role) {
                     mood: score,
                     // 🔥 MODIFICATION: Save history for teacher recap
                     mood_history: arrayUnion(mood)
+					
                 });
                 
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'mood_logs'), {
                     mood: mood,
                     timestamp: new Date().toISOString()
                 });
+				// Di dalam handleMoodClick(), setelah simpan mood:
+					logUserActivity(`Melakukan Check-in Mood: ${mood}`);
+				
             } catch(e) { console.error("Mood Save Error", e); }
         };
 
@@ -2337,12 +2399,17 @@ function updateHeroRole(role) {
                     { id: 'tabStudentOrg', icon: 'fa-sitemap', label: 'Organisasi' },
                     { id: 'tabStudentSkills', icon: 'fa-lightbulb', label: 'Keahlian' },
                     { id: 'tabStudentReport', icon: 'fa-chart-pie', label: 'Raport' },
-                    { id: 'tabStudentCurhat', icon: 'fa-comment-dots', label: 'Inbox & Chat' },
+					// Di dalam renderNavigation, ganti baris links untuk student bagian Curhat:
+					{ id: 'tabStudentCurhat', icon: 'fa-comment-dots', label: 'Inbox & Chat <span id="studentInboxBadge" class="badge bg-danger rounded-pill ms-2 hidden" style="font-size:0.6rem">0</span>' },
+                    //{ id: 'tabStudentCurhat', icon: 'fa-comment-dots', label: 'Inbox & Chat' },
                     { id: 'tabStudentProfile', icon: 'fa-user', label: 'Profil' }
                 ];
             } else if(role === 'teacher') {
     links = [
-         { id: 't_home', icon: 'fa-home', label: 'Beranda' },
+         //{ id: 't_home', icon: 'fa-home', label: 'Beranda' },
+		 // Cari baris ini di dalam renderNavigation bagian teacher:
+{ id: 't_home', icon: 'fa-home', label: 'Beranda', func: 'loadStudentActivityLogs' }, 
+// (Tambahkan func: 'loadStudentActivityLogs' agar otomatis refresh saat tab diklik)
          { id: 't_students', icon: 'fa-users', label: 'Data Siswa', func: 'fetchStudents' },
          { id: 't_daily_msg', icon: 'fa-bullhorn', label: 'Pesan Harian', func: 'loadMessageHistory' }, // NEW
          { id: 't_inbox', icon: 'fa-envelope', label: 'Inbox', func: 'loadTeacherInbox' },
@@ -2849,10 +2916,19 @@ function updateHeroRole(role) {
                 } else {
                     document.getElementById('myTeacherInfo').innerHTML = '<div class="text-danger small">Belum ada Guru Wali. Silakan pilih di menu "Edit Profil" diatas.</div>';
                 }
+				// Di dalam loadStudentDashboard(), paling bawah:
+			logUserActivity("Login ke Aplikasi");
             }
+			
         }
         
-        // NEW: Load Teacher Profile in Profile Tab
+       
+
+
+
+
+
+	   // NEW: Load Teacher Profile in Profile Tab
         async function loadTeacherInfo(teacherUid) {
             try {
                 const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', teacherUid));
@@ -3681,33 +3757,37 @@ function renderTeacherStudents() {
         };
 
       // --- TEACHER MODAL NAVIGATION (UPDATED) ---
-        window.switchTeacherModalView = (view) => {
-            // Update Active Tab Class
-            const tabs = document.querySelectorAll('#teacherModalTabs .nav-link');
-            tabs.forEach(el => el.classList.remove('active'));
-            
-            // Map view string to tab index (0:Profile, 1:Goals, 2:Ach, 3:Org, 4:Skills)
-            // Sesuaikan urutan index dengan urutan <li> di HTML Langkah 1
-            const map = { 'profile':0, 'goals':1, 'achievements':2, 'org':3, 'skills':4 };
-            if(tabs[map[view]]) tabs[map[view]].classList.add('active');
+// Cari fungsi switchTeacherModalView(view) dan update isinya:
 
-            // Show Loading
-            const content = document.getElementById('teacherReportContent');
-            content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 small text-muted">Memuat data...</p></div>';
+window.switchTeacherModalView = (view) => {
+    // 1. UPDATE BAGIAN MAP INI (Tambahkan 'activity': 5)
+    const map = { 'profile':0, 'goals':1, 'achievements':2, 'org':3, 'skills':4, 'activity':5 };
+    
+    const tabs = document.querySelectorAll('#teacherModalTabs .nav-link');
+    tabs.forEach(el => el.classList.remove('active'));
+    if(tabs[map[view]]) tabs[map[view]].classList.add('active');
 
-            // Route Logic
-            if(view === 'goals') {
-                loadGoals(currentStudentReportId, true);
-            } else if(view === 'skills') {
-                loadSkills(currentStudentReportId, true);
-            } else if(view === 'profile') {
-                renderTeacherProfileView();
-            } else if(view === 'achievements') {
-                loadAchievements(currentStudentReportId, true);
-            } else if(view === 'org') {
-                loadOrganizations(currentStudentReportId, true);
-            }
-        };
+    const content = document.getElementById('teacherReportContent');
+    content.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 small text-muted">Memuat data...</p></div>';
+
+    // 2. TAMBAHKAN 'else if' DI PALING BAWAH LOGIKA IF
+    if(view === 'goals') {
+        loadGoals(currentStudentReportId, true);
+    } else if(view === 'skills') {
+        loadSkills(currentStudentReportId, true);
+    } else if(view === 'profile') {
+        renderTeacherProfileView();
+    } else if(view === 'achievements') {
+        loadAchievements(currentStudentReportId, true);
+    } else if(view === 'org') {
+        loadOrganizations(currentStudentReportId, true);
+    } 
+    // --- TAMBAHAN BARU ---
+    else if(view === 'activity') {
+        renderTeacherActivityLog(); 
+    }
+};
+       
 
         window.saveTeacherNote = async () => {
             const note = document.getElementById('teacherNoteInput').value;
@@ -4223,7 +4303,8 @@ window.filterInbox = (grade, tabEl) => {
             await updateDoc(doc(db,'artifacts',appId,'public','data','users',currentUser.uid), {
                 finalGoal: cleanData.finalGoalType // Just store the type for quick view
             });
-            
+            // Di dalam saveGoals():
+			logUserActivity("Memperbarui Peta Masa Depan (Goals)");
             alert('Peta Masa Depan Tersimpan!');
             loadGoals(); 
         };
@@ -4756,39 +4837,62 @@ window.filterInbox = (grade, tabEl) => {
         let chatListenerUnsub = null;
         
         function initChatListener(myUid) {
-            if(chatListenerUnsub) chatListenerUnsub();
-            
-            const q = query(collection(db,'artifacts',appId,'public','data','curhat_messages'), where('studentUid','==',myUid));
-            
-            chatListenerUnsub = onSnapshot(q, (snapshot) => {
-                let msgs = [];
-                snapshot.forEach(d => msgs.push(d.data()));
-                msgs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-                
-                let h = '';
-                if(msgs.length === 0) h = '<div class="text-center text-muted small mt-5">Belum ada pesan. Mulai chat dengan guru wali/BK Anda.</div>';
-                
-                msgs.forEach(m => {
-                    const isMe = m.senderRole === 'student';
-                    const bubbleClass = isMe ? 'sent' : 'received';
-                    const senderName = isMe ? 'Saya' : 'Guru';
-                    const time = new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    
-                    h += `<div class="chat-bubble ${bubbleClass}">
-                        ${!isMe ? '<div class="small fw-bold text-primary mb-1">'+senderName+'</div>' : ''}
-                        ${m.category && isMe ? `<span class="chat-category-badge">${m.category}</span><br>` : ''}
-                        ${m.message}
-                        <div class="chat-meta">${time}</div>
-                    </div>`;
-                });
-                
-                const container = document.getElementById('myCurhatList');
-                if(container) {
-                    container.innerHTML = h;
-                    container.scrollTop = container.scrollHeight; 
-                }
-            });
+    if(chatListenerUnsub) chatListenerUnsub();
+    
+    const q = query(collection(db,'artifacts',appId,'public','data','curhat_messages'), where('studentUid','==',myUid));
+    
+    chatListenerUnsub = onSnapshot(q, (snapshot) => {
+        let msgs = [];
+        snapshot.forEach(d => msgs.push(d.data()));
+        msgs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // --- LOGIKA BARU: HITUNG BADGE ---
+        // Asumsi sederhana: Jika pesan terakhir adalah dari Guru, anggap ada notifikasi
+        // Atau hitung jumlah pesan guru (untuk sistem read/unread yang kompleks butuh field 'read' di database)
+        let unreadCount = 0;
+        if (msgs.length > 0) {
+            // Cek pesan-pesan terakhir
+            const lastMsg = msgs[msgs.length - 1];
+            if (lastMsg.senderRole === 'teacher') {
+                unreadCount = 1; // Tampilkan badge (titik merah atau angka 1)
+            }
         }
+        
+        const badgeEl = document.getElementById('studentInboxBadge');
+        if (badgeEl) {
+            if (unreadCount > 0) {
+                badgeEl.innerText = "!"; // Atau angka
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+        }
+        // ----------------------------------
+
+        let h = '';
+        if(msgs.length === 0) h = '<div class="text-center text-muted small mt-5">Belum ada pesan. Mulai chat dengan guru wali/BK Anda.</div>';
+        
+        msgs.forEach(m => {
+            const isMe = m.senderRole === 'student';
+            const bubbleClass = isMe ? 'sent' : 'received';
+            const senderName = isMe ? 'Saya' : 'Guru';
+            const time = new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            h += `<div class="chat-bubble ${bubbleClass}">
+                ${!isMe ? '<div class="small fw-bold text-primary mb-1">'+senderName+'</div>' : ''}
+                ${m.category && isMe ? `<span class="chat-category-badge">${m.category}</span><br>` : ''}
+                ${m.message}
+                <div class="chat-meta">${time}</div>
+            </div>`;
+        });
+        
+        const container = document.getElementById('myCurhatList');
+        if(container) {
+            container.innerHTML = h;
+            container.scrollTop = container.scrollHeight; 
+        }
+    });
+}
 
 
 	// 3. Teacher Profile & Security Logic
@@ -5050,6 +5154,181 @@ function listenInboxTeacher() {
                 }
             } catch(e) { container.innerHTML = '<div class="text-danger p-3">Error: '+e.message+'</div>'; }
         };
+		
+		
+		// --- FUNGSI BARU: MENAMPILKAN LOG AKTIVITAS PER SISWA ---
+// --- FUNGSI UPDATE: KALENDER AKTIVITAS & LOG ---
+// Ganti fungsi renderTeacherActivityLog() yang lama dengan ini:
+
+// --- FUNGSI UPDATE: KALENDER AKTIVITAS & LOG (DENGAN NAVIGASI BULAN) ---
+// Ganti fungsi renderTeacherActivityLog() yang lama dengan ini:
+
+// Variabel global untuk menyimpan posisi bulan yang sedang dilihat
+window.viewActivityDate = new Date(); 
+
+async function renderTeacherActivityLog(monthChange = 0) {
+    const container = document.getElementById('teacherReportContent');
+    
+    // Update tanggal view berdasarkan input (Maju/Mundur Bulan)
+    if (monthChange !== 0) {
+        window.viewActivityDate.setMonth(window.viewActivityDate.getMonth() + monthChange);
+    } else {
+        // Jika dipanggil tanpa parameter (misal dari tab menu), reset ke bulan saat ini
+        // Kecuali jika kita ingin mempertahankan view terakhir, baris ini bisa dihapus.
+        // Untuk UX yang baik, biasanya reset saat tab dibuka pertama kali:
+        if(monthChange === 'reset') window.viewActivityDate = new Date();
+    }
+
+    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="mt-2 small text-muted">Menganalisis aktivitas...</p></div>';
+    
+    try {
+        // 1. Ambil Data Log dari Database
+        const q = query(
+            collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'),
+            where('studentUid', '==', currentStudentReportId)
+        );
+
+        const snap = await getDocs(q);
+        let logs = [];
+        let activeDates = new Set(); 
+
+        snap.forEach(d => {
+            const data = d.data();
+            logs.push(data);
+            
+            // Simpan tanggal aktivitas ke Set agar unik
+            const dateObj = new Date(data.timestamp);
+            activeDates.add(dateObj.toDateString()); 
+        });
+
+        // Urutkan log (Terbaru diatas) untuk list detail
+        logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        // 2. SETUP KALENDER BERDASARKAN VIEW DATE
+        const viewYear = window.viewActivityDate.getFullYear();
+        const viewMonth = window.viewActivityDate.getMonth(); // 0-11
+        
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const monthName = monthNames[viewMonth];
+        
+        // Hitung jumlah hari di bulan yang sedang dilihat
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        
+        // Cek apakah ini bulan "Saat Ini" (untuk highlight hari ini)
+        const today = new Date();
+        const isCurrentMonth = today.getFullYear() === viewYear && today.getMonth() === viewMonth;
+
+        // Mulai buat HTML
+        let html = `
+            <!-- KALENDER KEAKTIFAN -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white fw-bold text-primary d-flex justify-content-between align-items-center">
+                    
+                    <!-- Tombol Mundur Bulan -->
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="renderTeacherActivityLog(-1)" title="Bulan Sebelumnya">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <span class="mx-2 text-dark">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i>${monthName} ${viewYear}
+                    </span>
+
+                    <!-- Tombol Maju Bulan -->
+                    <button class="btn btn-sm btn-outline-secondary rounded-circle" onclick="renderTeacherActivityLog(1)" title="Bulan Berikutnya">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">`;
+
+        // Loop Hari dalam Bulan Terpilih
+        for(let day = 1; day <= daysInMonth; day++) {
+            // Tanggal yang sedang di-loop
+            const checkDate = new Date(viewYear, viewMonth, day);
+            
+            // Cek apakah ada data di tanggal ini
+            const isActive = activeDates.has(checkDate.toDateString());
+            
+            // Styling
+            let bgClass = isActive ? 'bg-success text-white shadow-sm' : 'bg-light text-muted';
+            let borderClass = isActive ? 'border-success' : 'border-light';
+            let content = isActive ? '<i class="fas fa-check"></i>' : '<span style="opacity:0.4; font-family:monospace;">0</span>';
+            
+            // Highlight khusus "Hari Ini" (Hanya jika sedang melihat bulan saat ini)
+            if(isCurrentMonth && day === today.getDate() && !isActive) {
+                borderClass = 'border-primary border-2'; 
+            }
+
+            html += `
+                <div class="rounded p-1 d-flex flex-column align-items-center justify-content-center border ${borderClass} ${bgClass}" 
+                     style="width: 42px; height: 48px; transition:all 0.2s;" 
+                     title="Tanggal ${day} ${monthName} ${viewYear}">
+                    <span class="fw-bold" style="font-size: 0.7rem;">${day}</span>
+                    <div style="font-size: 0.85rem; margin-top:-2px;">${content}</div>
+                </div>`;
+        }
+
+        html += `
+                    </div>
+                    <div class="mt-3 text-center small text-muted d-flex justify-content-center gap-3">
+                        <div class="d-flex align-items-center"><div class="bg-success rounded-circle me-1" style="width:10px;height:10px;"></div> Hadir/Aktif</div>
+                        <div class="d-flex align-items-center"><div class="bg-light border rounded-circle me-1" style="width:10px;height:10px;"></div> Tidak Aktif (0)</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 3. TABEL DETAIL (Tetap Menampilkan SEMUA Histori)
+        if(logs.length === 0) {
+            html += `<div class="text-center text-muted py-5 small fst-italic">Belum ada riwayat aktivitas tercatat sama sekali.</div>`;
+        } else {
+            html += '<h6 class="fw-bold text-dark mb-3 ps-1"><i class="fas fa-list-ul me-2"></i>Semua Riwayat Aktivitas</h6>';
+            html += '<div class="table-responsive bg-white rounded shadow-sm border" style="max-height:400px; overflow-y:auto;"><table class="table table-hover mb-0 align-middle small">';
+            html += '<thead class="table-light sticky-top"><tr><th>Waktu</th><th>Aktivitas</th></tr></thead><tbody>';
+
+            logs.forEach(log => {
+                const time = new Date(log.timestamp);
+                const dateStr = time.toLocaleDateString('id-ID', {day:'numeric', month:'short', year: 'numeric'}); // Tambah tahun agar jelas
+                const timeStr = time.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                
+                let badgeClass = "bg-light text-dark";
+                if(log.action.includes("Mood")) badgeClass = "bg-warning bg-opacity-10 text-warning";
+                if(log.action.includes("Login")) badgeClass = "bg-success bg-opacity-10 text-success";
+                if(log.action.includes("Peta") || log.action.includes("Goals")) badgeClass = "bg-primary bg-opacity-10 text-primary";
+
+                html += `
+                <tr>
+                    <td style="width: 130px;" class="text-muted">
+                        <div class="fw-bold text-dark">${timeStr}</div>
+                        <div style="font-size:0.7rem">${dateStr}</div>
+                    </td>
+                    <td>
+                        <span class="badge ${badgeClass} fw-normal text-wrap text-start lh-sm border-0">
+                            ${log.action}
+                        </span>
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+        }
+
+        // Tombol Refresh & Reset View
+        html += `
+        <div class="d-flex justify-content-between mt-2 align-items-center">
+            <small class="text-muted fst-italic">*Menampilkan data kalender: ${monthName} ${viewYear}</small>
+            <button class="btn btn-sm btn-link text-muted text-decoration-none" onclick="renderTeacherActivityLog('reset')">
+                <i class="fas fa-sync-alt me-1"></i> Refresh Hari Ini
+            </button>
+        </div>`;
+
+        container.innerHTML = html;
+
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = `<div class="text-danger p-3 small">Gagal memuat data: ${e.message}</div>`;
+    }
+}
 
         // --- NEW: RENDER TAMPILAN PRESTASI (GURU VIEW) ---
         window.renderTeacherAchievementsView = () => {
@@ -5110,6 +5389,78 @@ function listenInboxTeacher() {
             });
             container.innerHTML = h;
         };
+		
+		
+		// --- FUNGSI BARU: GURU MELIHAT LOG ---
+async function loadStudentActivityLogs() {
+    const container = document.getElementById('activityLogTableBody');
+    if(!container) return;
+    
+    container.innerHTML = '<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat...</td></tr>';
+
+    try {
+        // Ambil 20 aktivitas terakhir dari seluruh siswa
+        const q = query(
+            collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), 
+            orderBy('timestamp', 'desc'), 
+            limit(20)
+        );
+        
+        // Catatan: Jika error "index required", hapus sementara orderBy('timestamp', 'desc') 
+        // dan urutkan manual dengan .sort() di Javascript seperti pesan inbox.
+
+        const snap = await getDocs(q);
+        let logs = [];
+        snap.forEach(d => logs.push(d.data()));
+
+        // Jika tidak pakai index firestore, sort manual disini:
+        logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if(logs.length === 0) {
+            container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Belum ada aktivitas tercatat.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        logs.forEach(log => {
+            const time = new Date(log.timestamp);
+            const dateStr = time.toLocaleDateString('id-ID', {day:'numeric', month:'short'});
+            const timeStr = time.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+            
+            // Warna badge berdasarkan jenis aktivitas
+            let badgeColor = 'bg-light text-dark';
+            if(log.action.includes('Login')) badgeColor = 'bg-success bg-opacity-10 text-success';
+            if(log.action.includes('Mood')) badgeColor = 'bg-warning bg-opacity-10 text-warning';
+            if(log.action.includes('Peta')) badgeColor = 'bg-primary bg-opacity-10 text-primary';
+
+            html += `
+            <tr>
+                <td style="width: 120px;">
+                    <div class="fw-bold" style="font-size:0.75rem">${timeStr}</div>
+                    <div class="text-muted" style="font-size:0.65rem">${dateStr}</div>
+                </td>
+                <td>
+                    <div class="fw-bold text-dark">${log.studentName}</div>
+                    <div class="text-muted" style="font-size:0.7rem">${log.studentClass}</div>
+                </td>
+                <td>
+                    <span class="badge ${badgeColor} border fw-normal text-wrap text-start">${log.action}</span>
+                </td>
+            </tr>`;
+        });
+        
+        container.innerHTML = html;
+
+    } catch(e) {
+        console.error(e);
+        // Fallback jika error index (karena orderBy)
+        if(e.message.includes("index")) {
+             container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Error: Firestore Index diperlukan. Hapus orderBy di kode atau buat index di Firebase Console.</td></tr>';
+        } else {
+             container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Gagal memuat data log.</td></tr>';
+        }
+    }
+}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
