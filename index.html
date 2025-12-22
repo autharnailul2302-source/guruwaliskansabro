@@ -51,16 +51,146 @@
         }
 		
 		/* ANIMASI PET */
-@keyframes bounceSlow {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+ /* --- CSS KHUSUS PET GAME (FINAL FIXED) --- */
+/* --- CSS PET FIXED BACKGROUND --- */
+        .pet-stage {
+			position: relative;
+			width: 100%;
+			height: 350px;
+			border-radius: 24px 24px 0 0;
+			overflow: hidden;
+			box-shadow: inset 0 0 30px rgba(0,0,0,0.05);
+			/* Hapus background-image/color dari sini karena pindah ke layer langit */
 }
-.animate-bounce-slow {
-    animation: bounceSlow 3s infinite ease-in-out;
+		/* LAYER 0: LANGIT (Paling Belakang) */
+        .pet-sky-layer {
+    position: absolute; inset: 0; z-index: 0;
+    background: linear-gradient(180deg, #87CEEB 0%, #E0F7FA 100%); /* Siang */
+    transition: background 1.5s ease;
 }
-.pet-eating {
-    transform: scale(1.1) rotate(5deg) !important;
+
+.pet-stage.night .pet-sky-layer {
+    background: linear-gradient(180deg, #0f172a 0%, #312e81 100%); /* Malam */
 }
+/* OVERLAY MALAM (Di atas BG User tapi di bawah Pet/Partikel Depan?) 
+    /* 5. Layer Overlay Malam (Z-Index 5) */
+.pet-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    background: rgba(0,0,0,0); pointer-events: none;
+    transition: background 1s ease;
+}
+.pet-stage.night .pet-overlay { background: rgba(15, 23, 42, 0.5); }
+
+
+		/* 3. Layer Partikel Jauh (Awan/Bintang - Z-Index 1) */
+.pet-far-particles {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+}
+	
+	 /* LAYER 1: BACKGROUND USER (Gambar Rumput/Lantai) */
+        .pet-bg-layer {
+    position: absolute; inset: 0; z-index: 2;
+    background-size: 100% 100%; /* Agar gambar memenuhi kotak */
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    pointer-events: none;
+}
+             
+        /* LAYER 3: PARTIKEL DEPAN (Hujan/Daun/Bubble - Paling Depan) */
+        .pet-near-particles {
+            position: absolute; inset: 0; z-index: 15; pointer-events: none;
+        }
+
+        /* --- SPRITE ANIMATION --- */
+         /* LAYER 2: PET (Di Atas Background) */
+        .pet-sprite-actor {
+    position: absolute; 
+    bottom: 25px; left: 50%;
+    transform: translateX(-50%); 
+    width: 160px; height: 160px; 
+    z-index: 10; cursor: pointer;
+    image-rendering: pixelated; 
+    background-repeat: no-repeat;
+    background-size: contain; 
+    background-position: center bottom;
+    animation: petBreath 5s ease-in-out infinite alternate; /* Animasi Napas */
+    -webkit-tap-highlight-color: transparent;
+    transition: filter 0.3s;
+}
+
+        @keyframes petBreath {
+            0% { transform: translateX(-50%) scale(1, 1); }
+            100% { transform: translateX(-50%) scale(1.02, 0.98); } 
+        }
+
+       /* --- ANIMASI & PARTIKEL --- */
+        
+        /* Bintang (Far) */
+        .star-particle {
+            position: absolute; background: white; border-radius: 50%; 
+            opacity: 0.8; animation: twinkle 4s infinite ease-in-out;
+        }
+        
+        /* Awan (Far) */
+        /* Update Class Awan */
+.cloud {
+    position: absolute; background: rgba(255, 255, 255, 0.85);
+    border-radius: 50px; filter: blur(4px);
+}
+.cloud::after, .cloud::before { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+.cloud::after { width: 40px; height: 40px; top: -20px; left: 15px; }
+.cloud::before { width: 30px; height: 30px; top: -10px; left: 40px; }
+        @keyframes moveCloud { from { transform: translateX(-150px); } to { transform: translateX(500px); } }
+
+        /* Hujan (Near) */
+        .rain-drop {
+            position: absolute; background: rgba(255, 255, 255, 0.6);
+            width: 2px; height: 15px; top: -20px;
+            animation: rainFall 0.8s linear infinite;
+        }
+        @keyframes rainFall { to { transform: translateY(400px); } }
+
+        /* Daun/Bubble (Near) */
+        .bg-particle { position: absolute; font-size: 1.2rem; opacity: 0.9; }
+        .particle-wind { animation: fallWind 6s linear infinite; }
+        .particle-float { animation: floatUp 5s ease-in infinite; }
+
+        @keyframes petBreath { 0% { transform: translateX(-50%) scale(1, 1); } 100% { transform: translateX(-50%) scale(1.04, 0.96); } }
+        @keyframes fallWind { 0% { transform: translateY(-50px) translateX(0) rotate(0deg); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(350px) translateX(100px) rotate(360deg); opacity: 0; } }
+        @keyframes floatUp { 0% { transform: translateY(350px) scale(0.5); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-50px) scale(1.2); opacity: 0; } }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* Animasi Aksi */
+        .pet-anim-eat { animation: pet-eat 0.5s infinite !important; }
+        @keyframes pet-eat { 0%, 100% { transform: translateX(-50%) translateY(0) scale(1,1); } 50% { transform: translateX(-50%) translateY(-25px) scale(0.9, 1.1); } }
+        
+        .pet-anim-play { animation: pet-play 0.8s ease-in-out !important; }
+        @keyframes pet-play { 0% { transform: translateX(-50%) rotate(0deg); } 50% { transform: translateX(-50%) translateY(-60px) rotate(360deg) scale(1.2); } 100% { transform: translateX(-50%) rotate(720deg); } }
+        
+        .pet-anim-sleep { 
+            filter: brightness(0.6); 
+			/* Ubah animasi diam menjadi animasi bernafas pelan */
+            animation: petSleepBreath 4s ease-in-out infinite !important;
+            transform-origin: bottom center; 
+        }
+		/* --- TAMBAHKAN KEYFRAMES BARU INI --- */
+        @keyframes petSleepBreath { 
+            0%, 100% { transform: translateX(-50%) translateY(10px) rotate(5deg) scale(0.95, 0.95); } 
+            50% { transform: translateX(-50%) translateY(10px) rotate(5deg) scale(1.02, 0.92); } /* Efek kembang kempis */
+        }
+		
+        /* UI Game */
+        .pet-hud { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 20; pointer-events: none; }
+        .pet-hud > * { pointer-events: auto; }
+        
+        .pet-stat-pill { background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #475569; display: flex; align-items: center; gap: 5px; cursor: help; transition: transform 0.2s; }
+        .pet-stat-pill:hover { transform: scale(1.05); background: white; }
+        
+        .music-btn { width: 32px; height: 32px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; pointer-events: auto; }
+        .music-btn.off { background: #e2e8f0; color: #94a3b8; }
+
+		
+        /* AKHIR Animasi PET*/
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -682,6 +812,12 @@
   padding: 2px 6px;
   border-radius: 12px;
 }
+
+@media (max-width: 576px) {
+            .pet-stage { height: 280px; } /* Tinggi Mobile */
+            .pet-sprite-actor { width: 130px; height: 130px; bottom: 20px; }
+            .bg-particle { font-size: 1rem !important; }
+        }
 
     </style>
 </head>
@@ -1594,101 +1730,86 @@
             
 				<!-- SISIPKAN INI DI BAGIAN STUDENT VIEWS (HTML) -->
 
-<div id="tabStudentPet" class="view-tab hidden">
-    <div class="card border-0 shadow-sm" style="background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%);">
-        <div class="card-body text-center p-4">
+
+    <!--div class="card border-0 shadow-sm" style="background: linear-gradient(180deg, #e0f2fe 0%, #ffffff 100%);">
+        <div class="card-body text-center p-4"-->
             
             <!-- Header Status -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="bg-white px-3 py-1 rounded-pill shadow-sm small fw-bold text-primary">
-                    Level <span id="petLevel">1</span>
-                </div>
-                <div class="bg-white px-3 py-1 rounded-pill shadow-sm small fw-bold text-warning">
-                    <i class="fas fa-coins me-1"></i> <span id="petCoins">0</span> Koin
-                </div>
-            </div>
+           <!-- WIDGET PET TERINTEGRASI -->
+ <div id="tabStudentPet" class="view-tab hidden">
+                    <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                        <div class="card-body p-0">
+                            <!-- Panggung (Layer System Fixed) -->
+                            <div class="pet-stage" id="petStage">
+                               <!-- Layer 0: Langit -->
+    <div id="petSkyLayer" class="pet-sky-layer"></div>
+    
+    <!-- Layer 1: Partikel Jauh (Awan/Bintang) -->
+    <div id="petFarParticles" class="pet-far-particles"></div> 
 
-            <!-- Pet Display Area -->
-            <!-- Pet Display Area (GANTI KODE LAMA DENGAN INI) -->
-            <div id="petContainer" class="position-relative mb-5 mt-4 rounded-4 shadow-sm border" 
-                 style="padding-bottom: 70px;height: 300px; display: flex; align-items: flex-end; justify-content: center; 
-                        background-image: url('pet/bg.png'); background-size: cover; background-position: center; transition: background 0.5s; overflow: hidden;">
-                
-                <!-- Tombol Pilih Background -->
-                <div class="position-absolute top-0 end-0 p-3 z-2 d-flex gap-2">
-                    <button class="btn btn-sm btn-light rounded-circle shadow border" onclick="changePetBg('pet/bg.png')" title="Background Alam" style="width:36px;height:36px; font-size:1.2rem;">🌳</button>
-                    <button class="btn btn-sm btn-light rounded-circle shadow border" onclick="changePetBg('pet/bg2.png')" title="Background Rumah" style="width:36px;height:36px; font-size:1.2rem;">🏠</button>
-                </div>
+    <!-- Layer 2: Background User (Gambar Transparanmu) -->
+    <div id="petUserBgLayer" class="pet-bg-layer"></div>
+    
+    <!-- Layer 3: Overlay Malam -->
+    <div class="pet-overlay"></div>
 
-                <!-- GAMBAR PET BARU -->
-                <!-- Class 'animate-bounce-slow' membuat hewan bergerak naik-turun halus -->
-                <img src="pet/gemoy.png" id="petImage" class="animate-bounce-slow" width="80" 
-                     style="transition: all 0.3s; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3)); cursor: pointer;">
-                
-                <!-- Bubble Chat Pet -->
-                <div id="petBubble" class="position-absolute bg-white p-3 rounded-4 shadow-sm small fw-bold text-dark hidden" 
-                     style="top: 30px; left: 20px; max-width: 140px; z-index: 10; border-bottom-left-radius: 0; animation: popUp 0.3s;">
-                    Aku lapar... 🍗
-                </div>
-            </div>
+    <!-- Layer 4: Karakter Pet -->
+    <div class="pet-sprite-actor" id="petActor" onclick="playMeow()">
+        <div id="petBubble" class="position-absolute bg-white px-3 py-2 rounded-3 shadow-sm text-dark small fw-bold text-nowrap hidden" style="top: -50px; left: 50%; transform: translateX(-50%); transition: 0.3s; z-index: 20;"></div>
+    </div>
 
-            <!-- Progress Bars (Health, Hunger, Happy) -->
-            <div class="row g-3 mb-4 px-2">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="fw-bold text-muted"><i class="fas fa-heart text-danger me-1"></i>Kesehatan</span>
-                        <span id="valHealth">100%</span>
-                    </div>
-                    <div class="progress rounded-pill" style="height: 8px;">
-                        <div id="barHealth" class="progress-bar bg-danger" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="fw-bold text-muted"><i class="fas fa-utensils text-warning me-1"></i>Lapar</span>
-                        <span id="valHunger">100%</span>
-                    </div>
-                    <div class="progress rounded-pill" style="height: 8px;">
-                        <div id="barHunger" class="progress-bar bg-warning" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="fw-bold text-muted"><i class="fas fa-smile text-primary me-1"></i>Bahagia</span>
-                        <span id="valHappy">100%</span>
-                    </div>
-                    <div class="progress rounded-pill" style="height: 8px;">
-                        <div id="barHappy" class="progress-bar bg-primary" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="d-grid grid-cols-3 gap-2 d-flex justify-content-center">
-                <button onclick="petAction('feed')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
-                    <span class="fs-2">🍗</span>
-                    <span class="small fw-bold mt-1">Makan</span>
-                    <span class="text-muted" style="font-size: 0.6rem;">-10 Koin</span>
-                </button>
-                <button onclick="petAction('play')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
-                    <span class="fs-2">⚽</span>
-                    <span class="small fw-bold mt-1">Main</span>
-                    <span class="text-muted" style="font-size: 0.6rem;">-5 Koin</span>
-                </button>
-                <button onclick="petAction('sleep')" class="btn btn-light shadow-sm rounded-4 p-3 d-flex flex-column align-items-center" style="width: 90px;">
-                    <span class="fs-2">💤</span>
-                    <span class="small fw-bold mt-1">Tidur</span>
-                    <span class="text-muted" style="font-size: 0.6rem;">Free</span>
-                </button>
-            </div>
-            
-            <div class="mt-4 alert alert-info small border-0 bg-info bg-opacity-10">
-                <i class="fas fa-info-circle me-1"></i> <b>Tips:</b> Isi "Mood Harian" atau "Target Belajar" untuk mendapatkan Koin tambahan!
-            </div>
-
+    <!-- Layer 5: Partikel Depan (Hujan/Daun) -->
+    <div id="petNearParticles" class="pet-near-particles"></div> 
+    
+    <!-- HUD (Status Bar) - Biarkan tetap di bawah agar paling depan -->
+    <div class="pet-hud">
+        <!-- ... (Isi HUD biarkan sama) ... -->
+        <div class="d-flex gap-2">
+            <div class="pet-stat-pill text-danger" title="Kesehatan" data-bs-toggle="tooltip"><i class="fas fa-heart me-1"></i> <span id="petHealth">100</span>%</div>
+            <div class="pet-stat-pill text-warning" title="Kenyang" data-bs-toggle="tooltip"><i class="fas fa-utensils me-1"></i> <span id="petHunger">0</span>%</div>
+            <div class="pet-stat-pill text-success" title="Bahagia" data-bs-toggle="tooltip"><i class="fas fa-smile me-1"></i> <span id="petHappy">100</span>%</div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <button class="music-btn off" id="btnMusicToggle" onclick="toggleMusic()" title="Musik"><i class="fas fa-music"></i></button>
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="changePetBg('pet/bg.png')" title="Luar">🌳</button>
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="changePetBg('pet/bg2.png')" title="Dalam">🏠</button>
         </div>
     </div>
+                            </div>
+
+                            <!-- Kontrol -->
+                            <div class="p-3 bg-white border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-primary">Level <span id="petLevel">1</span></div>
+                                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-warning"><i class="fas fa-coins me-1"></i> <span id="petCoins">0</span> Koin</div>
+                                </div>
+                                <div class="d-flex gap-2 justify-content-center w-100 mb-3">
+                                    <button onclick="petAction('feed')" id="btnActionFeed" class="btn btn-warning text-white shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">🍗</span><span class="small fw-bold">Makan</span><span class="text-white-50" style="font-size:0.6rem">-10 Koin</span></button>
+                                    <button onclick="petAction('play')" id="btnActionPlay" class="btn btn-success shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">⚽</span><span class="small fw-bold">Main</span><span class="text-white-50" style="font-size:0.6rem">-5 Koin</span></button>
+                                    <button onclick="petAction('sleep')" id="btnActionSleep" class="btn btn-primary shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span></button>
+                                </div>
+                                
+                                <!-- TIPS -->
+                                <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-start gap-2 mb-0 rounded-4">
+                                    <i class="fas fa-lightbulb text-info mt-1"></i>
+                                    <div>
+                                        <strong class="text-info" style="font-size: 0.8rem;">Tips Hari Ini:</strong>
+                                        <p class="mb-0 small text-muted lh-sm" id="randomPetTip">Isi Mood harian untuk koin tambahan!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                    <!-- END WIDGET PET -->
+
+        <!--/div-->
+    <!--/div-->
 </div>
+ <!-- --- AKHIR TAB PET --- -->
+
+
 			</div>
 
             <!-- --- TEACHER VIEWS --- -->
@@ -1744,30 +1865,37 @@
             </div>
 			
 			
-	
-			<!-- LOG AKTIVITAS SISWA (Masukkan di dalam div t_home, di bawah kartu statistik) -->
-<div class="card border-0 shadow-sm mt-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-history me-2"></i>Aktivitas Siswa Terbaru</h6>
-        <button class="btn btn-sm btn-light" onclick="loadStudentActivityLogs()"><i class="fas fa-sync-alt"></i></button>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light small text-muted">
-                    <tr>
-                        <th>Waktu</th>
-                        <th>Siswa</th>
-                        <th>Aktivitas</th>
-                    </tr>
-                </thead>
-                <tbody id="activityLogTableBody" class="small">
-                    <tr><td colspan="3" class="text-center py-3 text-muted">Klik refresh untuk memuat...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+<!-- LOG AKTIVITAS SISWA (Update: Dengan Pagination) -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-history me-2"></i>Aktivitas Siswa Terbaru</h6>
+                            <button class="btn btn-sm btn-light rounded-circle" onclick="loadStudentActivityLogs()" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 align-middle">
+                                    <thead class="table-light small text-muted">
+                                        <tr>
+                                            <th>Waktu</th>
+                                            <th>Siswa</th>
+                                            <th>Aktivitas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activityLogTableBody" class="small">
+                                        <tr><td colspan="3" class="text-center py-3 text-muted">Klik refresh untuk memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- 👇👇 INI BAGIAN BARU UNTUK TOMBOL HALAMAN (PAGING) 👇👇 -->
+                            <div id="activityLogPagination" class="d-flex justify-content-center gap-2 py-3 border-top"></div>
+                        </div>
+                    </div>	
+
+
+
+
+
+
         </div>
     </div>
 
@@ -2254,12 +2382,34 @@ function updateHeroRole(role) {
     }
 }
         let currentUser = null;
+		// --- 1. TAMBAHKAN VARIABEL GLOBAL INI (Letakkan di bawah let currentUser) ---
+let allActivityLogsCache = []; 
+let currentActivityLogPage = 1;
+const LOGS_PER_PAGE = 10; // Jumlah item per halaman
+let activityLogUnsub = null;
 		//tambahan
 		let allStudentsCache = []; 
 		let allInboxCache = [];
         let allMsgHistoryCache = []; // Cache for teacher message history
 		
         let userData = null;
+		//data pet
+		let myPetData = null;
+		let audioCtx = null; // Untuk suara
+		let isMusicOn = false;
+        let musicInterval = null;
+		let lifeCycleInterval = null; // Variable untuk interval pengurangan stats
+		// VARIABLE ANIMASI
+        let currentFrame = 1;
+        let animInterval = null;
+        let activeAnimLevel = 0;
+        let isAnimRunning = false;
+		let isRaining = false;
+		let petBubbleTimeout = null; // Untuk mengontrol durasi bubble
+
+
+		
+		
         let allUsersCache = []; // Cache for admin filtering
         let currentAdminFilter = 'student'; // Default filter
         let hasCheckedInToday = false;
@@ -2453,7 +2603,7 @@ async function logUserActivity(actionDetails) {
                 // Di dalam handleMoodClick, setelah await updateDoc(...)
 
 // BERIKAN REWARD KOIN
-rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
+ rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
                 await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'mood_logs'), {
                     mood: mood,
                     timestamp: new Date().toISOString()
@@ -2700,7 +2850,12 @@ rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
                     window.switchTab(links[0].id, null);
                     // UPDATE: Panggil loadAdminHome jika admin
                     if(role === 'admin') loadAdminHome();
-                    if(role === 'teacher') { loadDynamicMenus('teacher'); fetchStudents(); }
+                    if(role === 'teacher') 
+					{ 
+					loadDynamicMenus('teacher'); 
+					fetchStudents(); 
+					loadStudentActivityLogs(); 
+					}
                 }, 100);
             }
         }
@@ -2745,6 +2900,7 @@ rewardPetCoins(50); // Dapat 50 koin setiap check-in mood
 						// 🔥 TAMBAHAN INI
 						updateHeroRole(userData.role);
                         updateUI(userData);
+						initPetSystem();
 						
 						
 						if (userData.role === 'teacher') {
@@ -5645,286 +5801,685 @@ async function renderTeacherActivityLog(monthChange = 0) {
 		
 		
 		// --- FUNGSI BARU: GURU MELIHAT LOG ---
-async function loadStudentActivityLogs() {
-    const container = document.getElementById('activityLogTableBody');
-    if(!container) return;
-    
-    container.innerHTML = '<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat...</td></tr>';
 
-    try {
-        // Ambil 20 aktivitas terakhir dari seluruh siswa
-        const q = query(
-            collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), 
-            orderBy('timestamp', 'desc'), 
-            limit(20)
-        );
-        
-        // Catatan: Jika error "index required", hapus sementara orderBy('timestamp', 'desc') 
-        // dan urutkan manual dengan .sort() di Javascript seperti pesan inbox.
-
-        const snap = await getDocs(q);
-        let logs = [];
-        snap.forEach(d => logs.push(d.data()));
-
-        // Jika tidak pakai index firestore, sort manual disini:
-        logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-        if(logs.length === 0) {
-            container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Belum ada aktivitas tercatat.</td></tr>';
-            return;
-        }
-
-        let html = '';
-        logs.forEach(log => {
-            const time = new Date(log.timestamp);
-            const dateStr = time.toLocaleDateString('id-ID', {day:'numeric', month:'short'});
-            const timeStr = time.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+// --- 2. FUNGSI LOAD BARU (REAL-TIME / OTOMATIS) ---
+        window.loadStudentActivityLogs = async () => {
+            const container = document.getElementById('activityLogTableBody');
+            if(!container) return;
             
-            // Warna badge berdasarkan jenis aktivitas
-            let badgeColor = 'bg-light text-dark';
-            if(log.action.includes('Login')) badgeColor = 'bg-success bg-opacity-10 text-success';
-            if(log.action.includes('Mood')) badgeColor = 'bg-warning bg-opacity-10 text-warning';
-            if(log.action.includes('Peta')) badgeColor = 'bg-primary bg-opacity-10 text-primary';
+            // Hentikan listener lama jika ada (supaya tidak numpuk saat di-refresh manual)
+            if(activityLogUnsub) activityLogUnsub();
 
-            html += `
-            <tr>
-                <td style="width: 120px;">
-                    <div class="fw-bold" style="font-size:0.75rem">${timeStr}</div>
-                    <div class="text-muted" style="font-size:0.65rem">${dateStr}</div>
-                </td>
-                <td>
-                    <div class="fw-bold text-dark">${log.studentName}</div>
-                    <div class="text-muted" style="font-size:0.7rem">${log.studentClass}</div>
-                </td>
-                <td>
-                    <span class="badge ${badgeColor} border fw-normal text-wrap text-start">${log.action}</span>
-                </td>
-            </tr>`;
-        });
-        
-        container.innerHTML = html;
+            container.innerHTML = '<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat...</td></tr>';
 
-    } catch(e) {
-        console.error(e);
-        // Fallback jika error index (karena orderBy)
-        if(e.message.includes("index")) {
-             container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Error: Firestore Index diperlukan. Hapus orderBy di kode atau buat index di Firebase Console.</td></tr>';
-        } else {
-             container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Gagal memuat data log.</td></tr>';
-        }
-    }
-}
+            try {
+                // UPDATE: Ambil 100 data terakhir
+                // Kita gunakan limit(100) agar paging tetap ringan
+                const q = query(
+                    collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), 
+                    limit(100) 
+                );
+                
+                // GANTI getDocs DENGAN onSnapshot AGAR REAL-TIME
+                activityLogUnsub = onSnapshot(q, (snap) => {
+                    allActivityLogsCache = [];
+                    snap.forEach(d => allActivityLogsCache.push(d.data()));
+
+                    // Sortir manual (Terbaru di atas) karena kita tidak pakai orderBy di query (menghindari error index)
+                    allActivityLogsCache.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                    // Jika ini load pertama atau ada data baru, render ulang halaman saat ini
+                    renderActivityLogs();
+                }, (error) => {
+                    console.error("Error Realtime Log:", error);
+                    container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Gagal memuat data log secara otomatis.</td></tr>';
+                });
+
+            } catch(e) {
+                console.error(e);
+                container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-danger small">Terjadi kesalahan sistem.</td></tr>';
+            }
+        };
+
+        // --- 3. FUNGSI BARU: RENDER HALAMAN (TAMPILKAN DATA) ---
+        window.renderActivityLogs = () => {
+            const container = document.getElementById('activityLogTableBody');
+            const limitPerPage = 10; // Jumlah per halaman
+            
+            // Hitung Total Halaman
+            const totalPages = Math.ceil(allActivityLogsCache.length / limitPerPage);
+            if (currentActivityLogPage > totalPages) currentActivityLogPage = totalPages || 1;
+
+            // Ambil data sesuai halaman aktif (Slice array)
+            const start = (currentActivityLogPage - 1) * limitPerPage;
+            const paged = allActivityLogsCache.slice(start, start + limitPerPage);
+
+            if(paged.length === 0) {
+                container.innerHTML = '<tr><td colspan="3" class="text-center py-3 text-muted">Belum ada aktivitas tercatat.</td></tr>';
+                // Pastikan ada div dengan id="activityLogPagination" di HTML Anda
+                renderPaginationControls('activityLogPagination', 1, 1, 'changeActivityLogPage'); 
+                return;
+            }
+
+            let html = '';
+            paged.forEach(log => {
+                const time = new Date(log.timestamp);
+                const dateStr = time.toLocaleDateString('id-ID', {day:'numeric', month:'short'});
+                const timeStr = time.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                
+                let badgeColor = 'bg-light text-dark';
+                if(log.action.includes('Login')) badgeColor = 'bg-success bg-opacity-10 text-success';
+                if(log.action.includes('Mood')) badgeColor = 'bg-warning bg-opacity-10 text-warning';
+                if(log.action.includes('Peta') || log.action.includes('Makan') || log.action.includes('Main')) badgeColor = 'bg-primary bg-opacity-10 text-primary';
+
+                html += `
+                <tr>
+                    <td style="width: 120px;">
+                        <div class="fw-bold" style="font-size:0.75rem">${timeStr}</div>
+                        <div class="text-muted" style="font-size:0.65rem">${dateStr}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark">${log.studentName || 'Siswa'}</div>
+                        <div class="text-muted" style="font-size:0.7rem">${log.studentClass || '-'}</div>
+                    </td>
+                    <td>
+                        <span class="badge ${badgeColor} border fw-normal text-wrap text-start">${log.action}</span>
+                    </td>
+                </tr>`;
+            });
+            
+            container.innerHTML = html;
+            // Panggil helper pagination (pastikan helper ini ada di kode Anda, biasanya sudah ada untuk Admin)
+            renderPaginationControls('activityLogPagination', currentActivityLogPage, totalPages, 'changeActivityLogPage');
+        };
+
+        // --- 4. FUNGSI BARU: GANTI HALAMAN ---
+        window.changeActivityLogPage = (p) => {
+            currentActivityLogPage = p;
+            renderActivityLogs();
+        };
 
 
 
 // --- LOGIKA GAME WALIPETS (Place at bottom of script) ---
-
-let myPetData = {
-    level: 1,
-    xp: 0,
-    coins: 50, // Modal awal
-    health: 100,
-    hunger: 100,
-    happy: 100,
-    lastUpdate: new Date().toISOString()
-};
-
-// URL GAMBAR (Siapkan untuk diganti nanti)
-// Level 1: Telur/Bayi, Level 2: Remaja, Level 3: Dewasa
-const petSprites = {
-    1: "pet/gemoy.png", // Level 1
-    2: "pet/gemoy2.png", // Level 2 (Bisa diganti gambar lain nanti)
-    3: "pet/gemoy3.png"
-};
-
-// Panggil fungsi ini saat loadStudentDashboard()
-async function initPetSystem() {
-    if(!currentUser) return;
-    try {
-        const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pet', 'main');
-        const snap = await getDoc(docRef);
-        
-        if(snap.exists()) {
-            myPetData = snap.data();
-            calculateDecay(); // Kurangi status berdasarkan waktu offline
-        } else {
-            // Pet Baru
-            await setDoc(docRef, myPetData);
+// --- [PANDUAN] LOGIKA PET DIMULAI DARI SINI ---
+       
+	   // TIPS ACAK
+        const petTips = [
+            "Isi Mood harian untuk dapat koin!",
+            "Lengkapi Goals belajar biar dapat bonus!",
+            "Tidur yang cukup memulihkan energi.",
+            "Ajak main kucingmu biar Happy!",
+            "Makan teratur bikin sehat.",
+            "Catat prestasimu di menu Profil.",
+            "Jangan lupa update skill barumu!"
+        ];
+  // --- SISTEM AUDIO (CANGGIH) ---
+        function initAudio() {
+            if(!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
         }
-        updatePetUI();
-    } catch(e) { console.error("Pet init error", e); }
+        
+        function playTone(freq, type, duration) {
+            if(!audioCtx) initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        window.playMeow = () => {
+            playTone(800, 'triangle', 0.1); setTimeout(() => playTone(600, 'triangle', 0.2), 100);
+            const actor = document.getElementById('petActor');
+            
+            // Hanya animasi jika tidak sedang tidur
+            if (myPetData && !myPetData.isSleeping) {
+                // 1. Ambil Level saat ini (Maksimal 10)
+                const level = myPetData.level > 10 ? 10 : myPetData.level;
+
+                // 2. Hentikan animasi gerak/idle sementara agar gambar tidak tertimpa
+                stopPetAnimation();
+
+                // 3. Ganti gambar ke pose diam/meow (gemoy1.png, gemoy2.png, dst)
+                actor.style.backgroundImage = `url('pet/gemoy${level}.png')`;
+                
+                // 4. Tambah efek loncat CSS
+                actor.classList.add('pet-anim-eat'); 
+
+                // 5. Kembalikan ke animasi gerak setelah 0.5 detik
+                setTimeout(() => {
+                    actor.classList.remove('pet-anim-eat');
+                    // Jalankan lagi animasi idle-nya
+                    startPetAnimation(level);
+                }, 500); 
+            }
+            
+            const b = document.getElementById('petBubble');
+            b.innerText="Meong! ❤️"; b.classList.remove('hidden'); setTimeout(()=>b.classList.add('hidden'), 1000);
+        };
+
+        function playSFX(action) {
+            if(action === 'feed') { playTone(400, 'triangle', 0.1); setTimeout(() => playTone(600, 'triangle', 0.1), 150); }
+            else if(action === 'play') { playTone(500, 'sine', 0.1); setTimeout(() => playTone(800, 'sine', 0.2), 100); }
+            else if(action === 'sleep') { playTone(200, 'sine', 0.5); }
+            else if(action === 'levelup') { playTone(600, 'square', 0.1); setTimeout(() => playTone(1200, 'square', 0.4), 300); }
+            else if(action === 'coin') { playTone(1000, 'sine', 0.1); setTimeout(() => playTone(1500, 'sine', 0.2), 100); }
+        }
+
+        window.toggleMusic = () => {
+            isMusicOn = !isMusicOn;
+            const btn = document.getElementById('btnMusicToggle');
+            if(isMusicOn) {
+                initAudio(); btn.classList.remove('off'); btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                musicInterval = setInterval(() => { if(isMusicOn) playTone(330, 'sine', 0.2); }, 800);
+            } else {
+                btn.classList.add('off'); btn.innerHTML = '<i class="fas fa-music"></i>';
+                if(musicInterval) clearInterval(musicInterval);
+            }
+        };
+
+        // --- SISTEM PET UTAMA ---
+        // --- SISTEM PET UTAMA ---
+        window.initPetSystem = async () => {
+            updateDayNightCycle();
+            await loadPetData(); 
+            const savedBg = localStorage.getItem('myPetBg');
+            if(savedBg) window.changePetBg(savedBg);
+            startLifeCycle(); // MULAI SIKLUS HIDUP PET
+        };
+
+        // --- SIKLUS HIDUP OTOMATIS (New Feature: Termasuk Kesehatan) ---
+function startLifeCycle() {
+    if (lifeCycleInterval) clearInterval(lifeCycleInterval);
+    
+    lifeCycleInterval = setInterval(async () => {
+        if (!myPetData) return;
+        
+        let statsChanged = false;
+
+        if (!myPetData.isSleeping) {
+            // Penurunan Stats (Sama seperti kode lama)
+            if (myPetData.hunger > 0) {
+                myPetData.hunger = Math.max(0, myPetData.hunger - 1); 
+                statsChanged = true;
+            }
+            if (myPetData.happy > 0) {
+                myPetData.happy = Math.max(0, myPetData.happy - 2);
+                statsChanged = true;
+            }
+            if (myPetData.hunger < 30 || myPetData.happy < 30) {
+                if (myPetData.health > 0) {
+                    myPetData.health = Math.max(0, myPetData.health - 1);
+                    statsChanged = true;
+                }
+            }
+
+            // --- LOGIKA BUBBLE OTOMATIS (POP UP LAPAR/SAKIT) ---
+            // Cek kondisi acak (20% chance) agar tidak spamming setiap detik
+            if (Math.random() < 0.2) {
+                // Prioritas 1: Sakit
+                if (myPetData.health < 30) {
+                    showPetBubble("Ingin istirahat... 🤒");
+                } 
+                // Prioritas 2: Lapar
+                else if (myPetData.hunger < 30) {
+                    showPetBubble("Lapar nih... 🤤");
+                }
+                // Prioritas 3: Kesal/Bosan
+                else if (myPetData.happy < 30) {
+                    showPetBubble("Bosan... 😒");
+                }
+            }
+
+        } else {
+            // Jika tidur (Regenerasi)
+            if (myPetData.health < 100) {
+                myPetData.health = Math.min(100, myPetData.health + 2); 
+                statsChanged = true;
+            }
+            if (myPetData.hunger > 0) {
+                myPetData.hunger = Math.max(0, myPetData.hunger - 0.5); 
+                statsChanged = true;
+            }
+        }
+
+        if (statsChanged) {
+            updatePetUI();
+            await savePetData();
+        }
+    }, 10000); // Cek setiap 10 detik
+}
+		
+		// --- WEATHER SYSTEM (NEW) ---
+       function weatherSystem(isOutdoor) {
+    const nearContainer = document.getElementById('petNearParticles');
+    // Hapus hujan lama
+    const rains = nearContainer.querySelectorAll('.rain-drop');
+    rains.forEach(r => r.remove());
+
+    if (isOutdoor) {
+        // Peluang Hujan 30%
+        isRaining = Math.random() < 0.3;
+        if(isRaining) {
+            for(let i=0; i<30; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+                drop.style.animationDelay = Math.random() + 's';
+                nearContainer.appendChild(drop);
+            }
+        }
+    } else { isRaining = false; }
 }
 
-// Menghitung penurunan status saat ditinggal offline
-function calculateDecay() {
-    const now = new Date();
-    const last = new Date(myPetData.lastUpdate);
-    const diffHours = Math.abs(now - last) / 36e5; // Selisih jam
-
-    if(diffHours > 1) {
-        // Kurangi 5 poin per jam
-        const decay = Math.floor(diffHours * 5);
-        myPetData.hunger = Math.max(0, myPetData.hunger - decay);
-        myPetData.happy = Math.max(0, myPetData.happy - decay);
-        
-        // Jika lapar 0, kesehatan turun
-        if(myPetData.hunger === 0) {
-            myPetData.health = Math.max(0, myPetData.health - Math.floor(decay/2));
+function updateDayNightCycle(forceNight=false) {
+    const stage = document.getElementById('petStage');
+    const farContainer = document.getElementById('petFarParticles'); // Layer 1
+    const nearContainer = document.getElementById('petNearParticles'); // Layer 5
+    
+    if(!stage) return;
+    const hour = new Date().getHours();
+    const isNight = (hour >= 18 || hour < 6) || forceNight;
+    
+    if(isNight) { 
+        stage.classList.add('night'); 
+        farContainer.innerHTML = '';
+        // Bintang
+        for(let i=0; i<15; i++) {
+                farContainer.innerHTML += `<div class="star-particle" style="left:${Math.random()*100}%;top:${Math.random()*60}%;width:${Math.random()*3}px;height:${Math.random()*3}px;animation-delay:${Math.random()}s"></div>`;
         }
-        savePetData();
+    } else { 
+        stage.classList.remove('night'); 
+        farContainer.innerHTML = '';
+        // Awan (Lebih banyak & posisi acak ke bawah)
+        for(let i=0; i<6; i++) {
+            const topPos = 10 + Math.random() * 200; // Sebar vertikal
+            const size = 0.5 + Math.random(); 
+            const duration = 20 + Math.random() * 20;
+            farContainer.innerHTML += `<div class="cloud" style="top:${topPos}px; transform: scale(${size}); animation: moveCloud ${duration}s linear infinite; animation-delay:-${Math.random() * 20}s"></div>`;
+        }
+    }
+    renderNearParticles(nearContainer);
+}
+        
+function renderNearParticles(container) { 
+    // Hapus partikel lama (kecuali hujan)
+    const oldParticles = container.querySelectorAll('.bg-particle');
+    oldParticles.forEach(p => p.remove());
+
+    const bg = localStorage.getItem('myPetBg') || 'pet/bg.png';
+    const isIndoor = bg.includes('bg2.png'); 
+
+    if (isIndoor) {
+        // Indoor: Bubble
+        weatherSystem(false); // Matikan hujan
+        const ic = ['○', '°', 'o'];
+        for(let i=0; i<6; i++) {
+            container.innerHTML += `<div class="bg-particle particle-float" style="left:${Math.random()*100}%;animation-duration:${Math.random()*3+3}s;animation-delay:${Math.random()*3}s; color: rgba(255,255,255,0.6);">${ic[Math.floor(Math.random()*ic.length)]}</div>`;
+        }
+    } else {
+        // Outdoor: Daun & Cek Hujan
+        weatherSystem(true); // Cek cuaca
+        if(!isRaining) { // Jika tidak hujan, tampilkan daun
+            const ic = ['🌸','🍃','🍂']; 
+            for(let i=0; i<5; i++)
+			{
+                container.innerHTML += `<div class="bg-particle particle-wind" style="left:${Math.random()*100}%;animation-duration:${Math.random()*4+4}s;animation-delay:${Math.random()*5}s">${ic[Math.floor(Math.random()*ic.length)]}</div>`;
+            }
+        }
     }
 }
 
-function updatePetUI() {
-    // Update Text
+      window.changePetBg = (url) => {
+    // Targetkan Layer BG, bukan stage utama
+    const bgLayer = document.getElementById('petUserBgLayer'); 
+    if(bgLayer) { 
+        bgLayer.style.backgroundImage = `url('${url}')`; 
+        localStorage.setItem('myPetBg', url);
+        updateDayNightCycle(); 
+    }
+};
+
+        // --- DATA PET & REWARD ---
+        async function loadPetData() {
+            if(!currentUser) return;
+            try {
+                const docRef = doc(db,'artifacts',appId,'users',currentUser.uid,'pet','main');
+                const snap = await getDoc(docRef);
+                
+                if(snap.exists()) {
+                    myPetData = snap.data();
+                    
+                    // --- PATCH: PERBAIKAN DATA LAMA (MIGRASI) ---
+                    // Jika user lama belum punya stats Health/Hunger/Happy, set default 100
+                    let needUpdate = false;
+                    if (myPetData.health === undefined || myPetData.health === null) { myPetData.health = 100; needUpdate = true; }
+                    if (myPetData.hunger === undefined || myPetData.hunger === null) { myPetData.hunger = 100; needUpdate = true; }
+                    if (myPetData.happy === undefined || myPetData.happy === null) { myPetData.happy = 100; needUpdate = true; }
+                    
+                    // Simpan balik ke DB jika ada yang diperbaiki
+                    if(needUpdate) await setDoc(docRef, myPetData);
+
+                } else {
+                    // User Baru
+                    myPetData = { level:1, xp:0, coins:50, health:100, hunger:100, happy:100, isSleeping:false, lastUpdate: new Date().toISOString() };
+                    await setDoc(docRef, myPetData);
+                }
+                updatePetUI();
+            } catch(e) { console.error("Load Pet Error:", e); }
+        }
+
+        async function savePetData() {
+            if(!currentUser) return;
+            await setDoc(doc(db,'artifacts',appId,'users',currentUser.uid,'pet','main'), myPetData);
+        }
+
+       // --- ANIMASI VARIASI JEDA (Sangat Lambat & Natural) ---
+function startPetAnimation(level) {
+    if(animInterval) clearTimeout(animInterval);
+    const actor = document.getElementById('petActor');
+    
+    // Set Frame 1 langsung agar tidak hilang
+    actor.style.backgroundImage = `url('pet/gemoy${level}anim1.png')`;
+
+    const frames = [1, 2, 3, 4];
+    let idx = 0;
+
+    const nextFrame = () => {
+        actor.style.backgroundImage = `url('pet/gemoy${level}anim${frames[idx]}.png')`;
+        
+        // Jeda Variatif: Diam lama di frame 1, gerak cepat di frame lain
+        let delay = 500; // Default
+                
+                if (idx === 0) delay = 4000;      // Frame 1: Diam lama (4 detik)
+                else if (idx === 1) delay = 4000;  // Frame 2: Transisi cepat
+                else if (idx === 2) delay = 8000;  // Frame 3: Sedikit lebih lama (setengah detik)
+                else if (idx === 3) delay = 4000;  // Frame 4: Lambat sebelum kembali ke awal
+                
+        
+        idx++;
+        if (idx >= frames.length) idx = 0;
+        
+        if(isAnimRunning) {
+            animInterval = setTimeout(nextFrame, delay);
+        }
+    };
+    isAnimRunning = true;
+    animInterval = setTimeout(nextFrame, 4000); 
+}
+
+        function stopPetAnimation() {
+            isAnimRunning = false;
+            if(animInterval) clearTimeout(animInterval);
+            animInterval = null;
+        }
+
+        function updatePetUI() {
+    if(!myPetData) return;
+    
+    document.getElementById('petHealth').innerText = Math.round(myPetData.health);
+    document.getElementById('petHunger').innerText = Math.round(myPetData.hunger);
+    document.getElementById('petHappy').innerText = Math.round(myPetData.happy);
     document.getElementById('petLevel').innerText = myPetData.level;
     document.getElementById('petCoins').innerText = myPetData.coins;
-    
-    // Update Bars
-    updateBar('Health', myPetData.health, 'bg-danger');
-    updateBar('Hunger', myPetData.hunger, 'bg-warning');
-    updateBar('Happy', myPetData.happy, 'bg-primary');
 
-    // Update Image berdasarkan Level
-    const imgEl = document.getElementById('petImage');
-    const sprite = petSprites[myPetData.level] || petSprites[1];
-    if(imgEl.src !== sprite) imgEl.src = sprite;
+    const actor = document.getElementById('petActor');
+    const level = myPetData.level > 10 ? 10 : myPetData.level;
+    const btnSleep = document.getElementById('btnActionSleep');
 
-    // Bubble Chat Logika
-    const bubble = document.getElementById('petBubble');
-    if(myPetData.hunger < 30) {
-        bubble.innerText = "Lapar banget... 😭";
-        bubble.classList.remove('hidden');
-    } else if(myPetData.happy < 30) {
-        bubble.innerText = "Main dong! 🥺";
-        bubble.classList.remove('hidden');
+    if (myPetData.isSleeping) {
+            stopPetAnimation(); // Stop animasi idle biasa
+            if(btnSleep) btnSleep.innerHTML = '<span class="fs-4">☀️</span><span class="small fw-bold">Bangun</span><span class="text-white-50" style="font-size:0.6rem">Klik</span>';
+            
+            actor.style.backgroundImage = `url('pet/gemoy${level}tidur.png')`;
+            actor.classList.add('pet-anim-sleep'); // Class CSS animasi bernafas tadi
+            document.getElementById('petStage').classList.add('night');
+
+            // --- TAMPILKAN BUBBLE Zzz PERMANEN ---
+            showPetBubble("Zzz... 💤", true); 
+
     } else {
-        bubble.classList.add('hidden');
-    }
-}
-
-function updateBar(type, val, colorClass) {
-    document.getElementById(`val${type}`).innerText = val + '%';
-    const bar = document.getElementById(`bar${type}`);
-    bar.style.width = val + '%';
-    // Reset classes and add specific
-    bar.className = `progress-bar ${colorClass}`;
-}
-
-
-// --- PERBAIKAN FUNGSI PET ACTION ---
-
-window.petAction = async (action) => {
-    console.log("Tombol diklik:", action); // Cek apakah tombol merespon
-
-    // Pastikan data pet sudah ada
-    if (!myPetData) {
-        alert("Data peliharaan sedang dimuat, coba sesaat lagi...");
-        return;
+            if(btnSleep) btnSleep.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span>';
+            actor.classList.remove('pet-anim-sleep');
+            document.getElementById('petStage').classList.remove('night');
+            
+            // Jika sebelumnya Zzz, hilangkan bubblenya saat bangun (kecuali dihandle petAction)
+            // Tapi biasanya petAction('sleep') sudah handle "Hoaaam".
+            // Kita pastikan kalau bubble isinya "Zzz..." dia hilang.
+            const b = document.getElementById('petBubble');
+            if(b && b.innerText.includes("Zzz")) {
+                b.classList.add('hidden');
+            }
+            
+            if (!isAnimRunning) {
+                startPetAnimation(level);
+            }
+            updateDayNightCycle(); 
     }
 
-    const imgEl = document.getElementById('petImage');
-    let msg = "";
-
-    if(action === 'feed') {
-        if(myPetData.coins < 10) return alert("Koin tidak cukup! (Butuh 10 Koin). Isi Mood harian dulu untuk dapat koin.");
-        if(myPetData.hunger >= 100) return alert("Perutku sudah penuh!");
-        
-        myPetData.coins -= 10;
-        myPetData.hunger = Math.min(100, myPetData.hunger + 30);
-        myPetData.health = Math.min(100, myPetData.health + 5);
-        myPetData.xp += 10;
-        msg = "Nyam nyam! Enak! 🍗";
-        
-        // Animasi Makan
-        if(imgEl) {
-            imgEl.classList.add('pet-eating');
-            setTimeout(() => imgEl.classList.remove('pet-eating'), 500);
+    // Update Button States (Sama seperti sebelumnya)
+    const btnFeed = document.getElementById('btnActionFeed');
+    const btnPlay = document.getElementById('btnActionPlay');
+    
+    if (myPetData.isSleeping) {
+        if(btnFeed) { btnFeed.disabled = true; btnFeed.classList.add('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span>'; }
+        if(btnPlay) { btnPlay.disabled = true; btnPlay.classList.add('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span>'; }
+    } else {
+        if(btnFeed) {
+            if(myPetData.coins < 10) { btnFeed.disabled = true; btnFeed.classList.add('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">🚫</span><span class="small fw-bold">Kurang</span><span class="text-white-50" style="font-size:0.6rem">Butuh 10</span>'; } 
+            else { btnFeed.disabled = false; btnFeed.classList.remove('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">🍗</span><span class="small fw-bold">Makan</span><span class="text-white-50" style="font-size:0.6rem">-10 Koin</span>'; }
         }
+        if(btnPlay) {
+            if(myPetData.coins < 5) { btnPlay.disabled = true; btnPlay.classList.add('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">🚫</span><span class="small fw-bold">Kurang</span><span class="text-white-50" style="font-size:0.6rem">Butuh 5</span>'; } 
+            else { btnPlay.disabled = false; btnPlay.classList.remove('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">⚽</span><span class="small fw-bold">Main</span><span class="text-white-50" style="font-size:0.6rem">-5 Koin</span>'; }
+        }
+    }
+}
 
-    } else if (action === 'play') {
-        if(myPetData.coins < 5) return alert("Koin tidak cukup! (Butuh 5 Koin).");
-        if(myPetData.happy >= 100) return alert("Aku sudah sangat senang!");
+		
+		// Fungsi Helper untuk mengatur Bubble Pet
+function showPetBubble(text, isPersistent = false) {
+    const b = document.getElementById('petBubble');
+    if(!b) return;
 
-        myPetData.coins -= 5;
-        myPetData.happy = Math.min(100, myPetData.happy + 25);
-        myPetData.hunger = Math.max(0, myPetData.hunger - 10); // Main bikin lapar
-        myPetData.xp += 15;
-        msg = "Asyik! Seru banget! ⚽";
+    // Reset timer lama agar tidak bentrok
+    if (petBubbleTimeout) clearTimeout(petBubbleTimeout);
 
-    } else if (action === 'sleep') {
-        if(myPetData.health >= 100) return alert("Aku segar bugar!");
-        myPetData.health = Math.min(100, myPetData.health + 20);
-        myPetData.happy = Math.max(0, myPetData.happy - 10); 
-        msg = "Zzz... 💤";
+    b.innerText = text;
+    b.classList.remove('hidden');
+
+    // Jika tidak permanen (seperti Zzz), hilangkan setelah 2 detik
+    if (!isPersistent) {
+        petBubbleTimeout = setTimeout(() => {
+            b.classList.add('hidden');
+        }, 2000);
+    }
+}
+
+       window.petAction = async (act) => {
+    if(!myPetData) return;
+    initAudio();
+    const actor = document.getElementById('petActor');
+    
+    // 1. LOGIKA BANGUN TIDUR (Pecahkan Zzz)
+    if (myPetData.isSleeping) {
+        if (act === 'sleep') {
+            // Bangunkan
+            myPetData.isSleeping = false;
+            showPetBubble("Hoaaam.. 🥱"); // Bubble bangun
+            playSFX('sleep'); // Gunakan sfx sleep untuk toggle
+        } else {
+            // Sedang tidur tapi diklik makan/main -> Tolak
+            // Bubble Zzz tetap ada (tidak diganggu), atau bisa dikasih efek 'Ngorok'
+            // Biarkan saja return agar tidak mengganggu tidur
+            return; 
+        }
+    } 
+    else {
+        // 2. LOGIKA NORMAL (TIDAK TIDUR)
+        
+        actor.classList.remove('pet-anim-eat', 'pet-anim-play', 'pet-anim-sleep');
+        void actor.offsetWidth; // Reset animasi CSS
+
+        if(act === 'feed') {
+            if(myPetData.coins < 10) return showPetBubble("Koin kurang! 🪙");
+            
+            // Cek Kesehatan: Jika sakit parah, mungkin menolak makan? (Opsional)
+            // Tapi biasanya sakit butuh makan. Kita lanjut saja.
+            
+            myPetData.coins -= 10; 
+            myPetData.hunger = Math.min(100, myPetData.hunger + 30); 
+            myPetData.xp += 10;
+            showPetBubble("Nyam! 🍗"); 
+            actor.classList.add('pet-anim-eat'); 
+            playSFX('feed'); 
+
+        } else if(act === 'play') {
+            // --- LOGIKA KESAL (MARAH) ---
+            // Jika Happy < 30 (Marah/Stress), dia menolak main
+            if (myPetData.happy < 30) {
+                 showPetBubble("Gak mood main! 💢"); // Pop up Kesal
+                 // Tambahkan efek getar/marah visual jika mau (opsional)
+                 return; // Stop, koin tidak berkurang
+            }
+
+            // --- LOGIKA SAKIT ---
+            // Jika Health < 30 (Sakit), menolak main, minta istirahat
+            if (myPetData.health < 30) {
+                showPetBubble("Badan lemas... 🤒");
+                return;
+            }
+
+            if(myPetData.coins < 5) return showPetBubble("Koin kurang! 🪙");
+
+            myPetData.coins -= 5; 
+            myPetData.happy = Math.min(100, myPetData.happy + 20); 
+            myPetData.xp += 15;
+            showPetBubble("Seru! ⚽"); 
+            actor.classList.add('pet-anim-play'); 
+            playSFX('play'); 
+
+        } else if(act === 'sleep') {
+            myPetData.isSleeping = true;
+            // Bubble Zzz dihandle di updatePetUI agar permanen
+            playSFX('sleep');
+        }
     }
 
     // Cek Level Up
     if(myPetData.xp > 100 * myPetData.level) {
-        myPetData.level++;
-        myPetData.xp = 0;
-        alert(`Selamat! Peliharaanmu naik ke Level ${myPetData.level}! 🎉`);
-        // Pastikan fungsi logUserActivity ada sebelum dipanggil
-        if(typeof logUserActivity === 'function') {
-            logUserActivity(`Pet naik level ke ${myPetData.level}`);
-        }
+        myPetData.level++; myPetData.xp = 0;
+        alert(`Naik Level ${myPetData.level}!`); playSFX('levelup');
     }
 
-    // Tampilkan Bubble Pesan
-    const bubble = document.getElementById('petBubble');
-    if(bubble) {
-        bubble.innerText = msg;
-        bubble.classList.remove('hidden');
-        setTimeout(() => bubble.classList.add('hidden'), 2000);
+    // Reset animasi setelah selesai (kecuali tidur)
+    if (!myPetData.isSleeping) {
+        setTimeout(() => { actor.classList.remove('pet-anim-eat', 'pet-anim-play'); }, 1000);
     }
 
-    // Simpan & Update UI
     await savePetData();
     updatePetUI();
 };
 
-async function savePetData() {
-    myPetData.lastUpdate = new Date().toISOString();
-    try {
-        await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pet', 'main'), myPetData);
-    } catch(e) { console.error("Save pet err", e); }
-}
+        window.rewardPetCoins = async (amount) => {
+            if (!myPetData) await loadPetData();
+            if (!myPetData) return;
 
-// FUNGSI UTAMA: Tambah Koin (Panggil ini saat user melakukan hal positif di aplikasi)
-async function rewardPetCoins(amount) {
-    // Pastikan data pet sudah terload
-    if(!myPetData) return; 
-    
-    myPetData.coins += amount;
-    await savePetData();
-    updatePetUI();
-    alert(`Kamu mendapatkan +${amount} Koin untuk peliharaanmu! 🪙`);
-}
+            myPetData.coins = (parseInt(myPetData.coins) || 0) + parseInt(amount);
+            playSFX('coin'); 
+            updatePetUI();
+            
+            const bubble = document.getElementById('petBubble');
+            bubble.innerText = `+${amount} Koin! 🪙`;
+            bubble.classList.remove('hidden');
+            setTimeout(() => bubble.classList.add('hidden'), 2500);
 
-// --- FUNGSI GANTI BACKGROUND PET ---
-// Letakkan di paling bawah script
+            await savePetData();
+        };
 
-window.changePetBg = (bgUrl) => {
-    const container = document.getElementById('petContainer');
-    if(container) {
-        // Ubah gambar CSS
-        container.style.backgroundImage = `url('${bgUrl}')`;
-        // Simpan pilihan user ke memori browser
-        localStorage.setItem('myPetBg', bgUrl);
-    }
-};
+        window.saveGoals = async (e) => {
+            e.preventDefault();
+            alert("Goals Disimpan!");
+            await rewardPetCoins(20);
+        };
 
-// Cek memori saat loading: Apakah user pernah ganti background?
-// Jika ya, pasang background terakhir yang dipilih.
-document.addEventListener("DOMContentLoaded", () => {
-    const savedBg = localStorage.getItem('myPetBg');
-    if(savedBg) {
-        // Tunggu sebentar agar elemen HTML siap
-        setTimeout(() => window.changePetBg(savedBg), 500);
-    }
-});
+        window.savePersonality = async (e) => {
+            e.preventDefault();
+            alert("Personality Tersimpan!");
+            await rewardPetCoins(20);
+        };
+
+        window.addAchievement = async (e) => {
+            e.preventDefault();
+            alert("Prestasi Ditambahkan!");
+            await rewardPetCoins(15);
+        };
+
+        window.addSkill = async (e) => {
+            e.preventDefault();
+            alert("Skill Ditambahkan!");
+            await rewardPetCoins(15);
+        };
+
+        window.handleMoodClick = async (mood) => {
+            if(hasCheckedInToday) { alert("Kamu sudah check-in mood hari ini!"); return; }
+
+            const modal = document.getElementById('moodModalOverlay');
+            const title = document.getElementById('moodModalTitle');
+            const body = document.getElementById('moodModalBody');
+            const icon = document.getElementById('moodModalIcon');
+
+            if(mood === 'sad') {
+                icon.innerHTML = '<i class="fas fa-frown fa-3x text-danger"></i>';
+                title.innerText = "Cerita yuk"; body.innerText = "Jangan dipendam sendiri.";
+            } else if (mood === 'angry') {
+                icon.innerHTML = '<i class="fas fa-angry fa-3x text-dark"></i>'; 
+                title.innerText = "Tarik nafas"; body.innerText = "Ceritakan apa yang membuatmu kesal?";
+            } else if(mood === 'happy') {
+                icon.innerHTML = '<i class="fas fa-smile fa-3x text-success"></i>';
+                title.innerText = "Senangnya!"; body.innerText = "Bagikan kebahagiaanmu!";
+            } else {
+                icon.innerHTML = '<i class="fas fa-meh fa-3x text-warning"></i>';
+                title.innerText = "Hari Tenang"; body.innerText = "Apa kabar hari ini?";
+            }
+            
+            modal.classList.remove('hidden'); modal.classList.add('active');            
+            
+            try {
+                let score = 50;
+                if(mood==='sad') score=20; else if(mood==='happy') score=90; else if(mood==='angry') score=30;
+
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid), { 
+                    mood: score, mood_history: arrayUnion(mood)
+                });
+                
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'mood_logs'), {
+                    mood: mood, timestamp: new Date().toISOString()
+                });
+
+                await rewardPetCoins(50); 
+                hasCheckedInToday = true;
+
+            } catch(e) { console.error("Mood Error", e); }
+        };
+
+        window.closeMoodModal = () => {
+            const modal = document.getElementById('moodModalOverlay');
+            modal.classList.remove('active'); setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+		
+		
 
 
+      
+		
 // --- SISTEM POLLING / SURVEI (Include at bottom) ---
 
 // 1. GURU: LOAD DATA POLLING
@@ -6211,6 +6766,9 @@ window.switchTab = (tabId, navEl) => {
     originalSwitchTab(tabId, navEl); // Jalan fungsi lama
     if(tabId === 'tabStudentPolling') loadStudentPolls(); // Fungsi baru
 };
+
+
+
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
