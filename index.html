@@ -180,11 +180,41 @@
         }
 		
         /* UI Game */
-        .pet-hud { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 20; pointer-events: none; }
-        .pet-hud > * { pointer-events: auto; }
-        
-        .pet-stat-pill { background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: #475569; display: flex; align-items: center; gap: 5px; cursor: help; transition: transform 0.2s; }
-        .pet-stat-pill:hover { transform: scale(1.05); background: white; }
+        /* --- GAYA HUD BARU (Bar Status) --- */
+.pet-hud { 
+    position: absolute; top: 0; left: 0; width: 100%; padding: 15px; 
+    display: flex; justify-content: space-between; align-items: start; 
+    z-index: 30; pointer-events: none; 
+}
+.pet-hud > * { pointer-events: auto; } /* Agar tombol bisa diklik */
+
+.stat-container { display: flex; flex-direction: column; gap: 6px; width: 120px; }
+
+.stat-box { 
+    background: rgba(0, 0, 0, 0.5); /* Latar semi-transparan */
+    padding: 4px 8px; 
+    border-radius: 8px; 
+    backdrop-filter: blur(4px);
+}
+
+.stat-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 2px; 
+    color: white; font-size: 0.65rem; font-weight: bold; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8); 
+}
+
+.progress-micro { 
+    height: 6px; 
+    background-color: rgba(255,255,255,0.2); 
+    border-radius: 3px; 
+    overflow: hidden; 
+}
+
+.bar-fill { 
+    height: 100%; 
+    transition: width 0.5s ease; /* Animasi bar naik/turun */
+}
         
         .music-btn { width: 32px; height: 32px; border-radius: 50%; background: white; border: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; pointer-events: auto; }
         .music-btn.off { background: #e2e8f0; color: #94a3b8; }
@@ -1736,72 +1766,96 @@
             
             <!-- Header Status -->
            <!-- WIDGET PET TERINTEGRASI -->
- <div id="tabStudentPet" class="view-tab hidden">
-                    <div class="card border-0 shadow-sm overflow-hidden mb-4">
-                        <div class="card-body p-0">
-                            <!-- Panggung (Layer System Fixed) -->
-                            <div class="pet-stage" id="petStage">
-                               <!-- Layer 0: Langit -->
-    <div id="petSkyLayer" class="pet-sky-layer"></div>
-    
-    <!-- Layer 1: Partikel Jauh (Awan/Bintang) -->
-    <div id="petFarParticles" class="pet-far-particles"></div> 
-
-    <!-- Layer 2: Background User (Gambar Transparanmu) -->
-    <div id="petUserBgLayer" class="pet-bg-layer"></div>
-    
-    <!-- Layer 3: Overlay Malam -->
-    <div class="pet-overlay"></div>
-
-    <!-- Layer 4: Karakter Pet -->
-    <div class="pet-sprite-actor" id="petActor" onclick="playMeow()">
-        <div id="petBubble" class="position-absolute bg-white px-3 py-2 rounded-3 shadow-sm text-dark small fw-bold text-nowrap hidden" style="top: -50px; left: 50%; transform: translateX(-50%); transition: 0.3s; z-index: 20;"></div>
-    </div>
-
-    <!-- Layer 5: Partikel Depan (Hujan/Daun) -->
-    <div id="petNearParticles" class="pet-near-particles"></div> 
-    
-    <!-- HUD (Status Bar) - Biarkan tetap di bawah agar paling depan -->
-    <div class="pet-hud">
-        <!-- ... (Isi HUD biarkan sama) ... -->
-        <div class="d-flex gap-2">
-            <div class="pet-stat-pill text-danger" title="Kesehatan" data-bs-toggle="tooltip"><i class="fas fa-heart me-1"></i> <span id="petHealth">100</span>%</div>
-            <div class="pet-stat-pill text-warning" title="Kenyang" data-bs-toggle="tooltip"><i class="fas fa-utensils me-1"></i> <span id="petHunger">0</span>%</div>
-            <div class="pet-stat-pill text-success" title="Bahagia" data-bs-toggle="tooltip"><i class="fas fa-smile me-1"></i> <span id="petHappy">100</span>%</div>
-        </div>
-        <div class="d-flex gap-2 align-items-center">
-            <button class="music-btn off" id="btnMusicToggle" onclick="toggleMusic()" title="Musik"><i class="fas fa-music"></i></button>
-            <button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="changePetBg('pet/bg.png')" title="Luar">🌳</button>
-            <button class="btn btn-sm btn-light rounded-circle shadow-sm" onclick="changePetBg('pet/bg2.png')" title="Dalam">🏠</button>
-        </div>
-    </div>
+					<!-- GANTI DIV #tabStudentPet LAMA DENGAN INI -->
+<div id="tabStudentPet" class="view-tab hidden">
+    <div class="card border-0 shadow-sm overflow-hidden mb-4">
+        <div class="card-body p-0">
+            <!-- Panggung (Layer System Fixed) -->
+            <div class="pet-stage" id="petStage">
+                <!-- Layer 0: Langit -->
+                <div id="petSkyLayer" class="pet-sky-layer"></div>
+                <!-- Layer 1: Partikel Jauh (Bintang/Awan) -->
+                <div id="petFarParticles" class="pet-far-particles"></div> 
+                <!-- Layer 2: Background User (Gambar) -->
+                <div id="petUserBgLayer" class="pet-bg-layer"></div>
+                <!-- Layer 3: Overlay Malam -->
+                <div class="pet-overlay"></div>
+                <!-- Layer 4: Karakter -->
+                <div class="pet-sprite-actor" id="petActor" onclick="playMeow()">
+                    <div id="petBubble" class="position-absolute bg-white px-3 py-2 rounded-3 shadow-sm text-dark small fw-bold text-nowrap hidden" style="top: -50px; left: 50%; transform: translateX(-50%); transition: 0.3s; z-index: 20;"></div>
+                </div>
+                <!-- Layer 5: Partikel Depan (Hujan/Daun) -->
+                <div id="petNearParticles" class="pet-near-particles"></div> 
+                
+                <!-- HUD (Status Bar Baru) -->
+                <div class="pet-hud">
+                    <div class="stat-container">
+                        <!-- Health -->
+                        <div class="stat-box" title="Kesehatan">
+                            <div class="stat-header">
+                                <span><i class="fas fa-heart text-danger me-1"></i>Sehat</span>
+                                <span id="txtHealth">100%</span>
                             </div>
-
-                            <!-- Kontrol -->
-                            <div class="p-3 bg-white border-top">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-primary">Level <span id="petLevel">1</span></div>
-                                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-warning"><i class="fas fa-coins me-1"></i> <span id="petCoins">0</span> Koin</div>
-                                </div>
-                                <div class="d-flex gap-2 justify-content-center w-100 mb-3">
-                                    <button onclick="petAction('feed')" id="btnActionFeed" class="btn btn-warning text-white shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">🍗</span><span class="small fw-bold">Makan</span><span class="text-white-50" style="font-size:0.6rem">-10 Koin</span></button>
-                                    <button onclick="petAction('play')" id="btnActionPlay" class="btn btn-success shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">⚽</span><span class="small fw-bold">Main</span><span class="text-white-50" style="font-size:0.6rem">-5 Koin</span></button>
-                                    <button onclick="petAction('sleep')" id="btnActionSleep" class="btn btn-primary shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span></button>
-                                </div>
-                                
-                                <!-- TIPS -->
-                                <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-start gap-2 mb-0 rounded-4">
-                                    <i class="fas fa-lightbulb text-info mt-1"></i>
-                                    <div>
-                                        <strong class="text-info" style="font-size: 0.8rem;">Tips Hari Ini:</strong>
-                                        <p class="mb-0 small text-muted lh-sm" id="randomPetTip">Isi Mood harian untuk koin tambahan!</p>
-                                    </div>
-                                </div>
+                            <div class="progress-micro">
+                                <div id="barHealth" class="bar-fill bg-danger" style="width:100%"></div>
+                            </div>
+                        </div>
+                        <!-- Hunger -->
+                        <div class="stat-box" title="Kenyang">
+                            <div class="stat-header">
+                                <span><i class="fas fa-utensils text-warning me-1"></i>Makan</span>
+                                <span id="txtHunger">100%</span>
+                            </div>
+                            <div class="progress-micro">
+                                <div id="barHunger" class="bar-fill bg-warning" style="width:100%"></div>
+                            </div>
+                        </div>
+                        <!-- Happy -->
+                        <div class="stat-box" title="Bahagia">
+                            <div class="stat-header">
+                                <span><i class="fas fa-smile text-success me-1"></i>Mood</span>
+                                <span id="txtHappy">100%</span>
+                            </div>
+                            <div class="progress-micro">
+                                <div id="barHappy" class="bar-fill bg-success" style="width:100%"></div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="d-flex flex-column gap-2 align-items-end">
+                        <button class="music-btn off" id="btnMusicToggle" onclick="toggleMusic()" title="Musik"><i class="fas fa-music"></i></button>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-light rounded-circle shadow-sm p-1" style="width:30px;height:30px" onclick="changePetBg('pet/bg.png')" title="Luar">🌳</button>
+                            <button class="btn btn-sm btn-light rounded-circle shadow-sm p-1" style="width:30px;height:30px" onclick="changePetBg('pet/bg2.png')" title="Dalam">🏠</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kontrol Aksi & Tips -->
+            <div class="p-3 bg-white border-top">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-primary">Level <span id="petLevel">1</span></div>
+                    <div class="bg-light px-3 py-1 rounded-pill shadow-sm small fw-bold text-warning"><i class="fas fa-coins me-1"></i> <span id="petCoins">0</span> Koin</div>
+                </div>
+                <div class="d-flex gap-2 justify-content-center w-100 mb-3">
+                    <button onclick="petAction('feed')" id="btnActionFeed" class="btn btn-warning text-white shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">🍗</span><span class="small fw-bold">Makan</span><span class="text-white-50" style="font-size:0.6rem">-10 Koin</span></button>
+                    <button onclick="petAction('play')" id="btnActionPlay" class="btn btn-success shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">⚽</span><span class="small fw-bold">Main</span><span class="text-white-50" style="font-size:0.6rem">-5 Koin</span></button>
+                    <button onclick="petAction('sleep')" id="btnActionSleep" class="btn btn-primary shadow-sm rounded-4 p-2 flex-fill d-flex flex-column align-items-center border-0"><span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span></button>
                 </div>
                 
+                <!-- TIPS BARU (Di Bawah Tombol) -->
+                <div class="alert alert-info border-0 bg-info bg-opacity-10 d-flex align-items-start gap-2 mb-0 rounded-4">
+                    <i class="fas fa-lightbulb text-info mt-1"></i>
+                    <div>
+                        <strong class="text-info" style="font-size: 0.8rem;">Tips Hari Ini:</strong>
+                        <p class="mb-0 small text-muted lh-sm" id="randomPetTip">Isi Mood harian untuk koin tambahan!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                     <!-- END WIDGET PET -->
 
         <!--/div-->
@@ -6221,64 +6275,80 @@ function startPetAnimation(level) {
             animInterval = null;
         }
 
-        function updatePetUI() {
+       // 1. FUNGSI UPDATE UI (Agar Bar Status Bergerak)
+function updatePetUI() {
     if(!myPetData) return;
     
-    document.getElementById('petHealth').innerText = Math.round(myPetData.health);
-    document.getElementById('petHunger').innerText = Math.round(myPetData.hunger);
-    document.getElementById('petHappy').innerText = Math.round(myPetData.happy);
-    document.getElementById('petLevel').innerText = myPetData.level;
-    document.getElementById('petCoins').innerText = myPetData.coins;
+    // UPDATE BAR (Lebar % CSS)
+    // Pastikan elemen ID barHealth, barHunger, barHappy ada di HTML
+    const barHealth = document.getElementById('barHealth');
+    const barHunger = document.getElementById('barHunger');
+    const barHappy = document.getElementById('barHappy');
 
+    if(barHealth) barHealth.style.width = Math.max(5, myPetData.health) + '%'; // Min 5% biar kelihatan dikit
+    if(barHunger) barHunger.style.width = Math.max(5, myPetData.hunger) + '%';
+    if(barHappy) barHappy.style.width = Math.max(5, myPetData.happy) + '%';
+    
+    // UPDATE TEKS ANGKA
+    if(document.getElementById('txtHealth')) document.getElementById('txtHealth').innerText = Math.round(myPetData.health) + '%';
+    if(document.getElementById('txtHunger')) document.getElementById('txtHunger').innerText = Math.round(myPetData.hunger) + '%';
+    if(document.getElementById('txtHappy')) document.getElementById('txtHappy').innerText = Math.round(myPetData.happy) + '%';
+
+    // Update Info Lain
+    if(document.getElementById('petLevel')) document.getElementById('petLevel').innerText = myPetData.level;
+    if(document.getElementById('petCoins')) document.getElementById('petCoins').innerText = myPetData.coins;
+    
+    // --- LOGIKA TAMPILAN PET (TIDUR VS BANGUN) ---
     const actor = document.getElementById('petActor');
     const level = myPetData.level > 10 ? 10 : myPetData.level;
-    const btnSleep = document.getElementById('btnActionSleep');
+    const btnS = document.getElementById('btnActionSleep');
 
     if (myPetData.isSleeping) {
-            stopPetAnimation(); // Stop animasi idle biasa
-            if(btnSleep) btnSleep.innerHTML = '<span class="fs-4">☀️</span><span class="small fw-bold">Bangun</span><span class="text-white-50" style="font-size:0.6rem">Klik</span>';
+            // Mode Tidur
+            stopPetAnimation(); // Matikan animasi gerak
+            if(btnS) btnS.innerHTML = '<span class="fs-4">☀️</span><span class="small fw-bold">Bangun</span><span class="text-white-50" style="font-size:0.6rem">Klik</span>';
             
+            // Ganti gambar ke versi tidur
             actor.style.backgroundImage = `url('pet/gemoy${level}tidur.png')`;
-            actor.classList.add('pet-anim-sleep'); // Class CSS animasi bernafas tadi
-            document.getElementById('petStage').classList.add('night');
-
-            // --- TAMPILKAN BUBBLE Zzz PERMANEN ---
-            showPetBubble("Zzz... 💤", true); 
-
+            actor.classList.add('pet-anim-sleep'); 
+            
+            // Gelapkan langit
+            const stage = document.getElementById('petStage');
+            if(stage) stage.classList.add('night');
     } else {
-            if(btnSleep) btnSleep.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span>';
-            actor.classList.remove('pet-anim-sleep');
-            document.getElementById('petStage').classList.remove('night');
+            // Mode Bangun
+            if(btnS) btnS.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span><span class="text-white-50" style="font-size:0.6rem">Gratis</span>';
             
-            // Jika sebelumnya Zzz, hilangkan bubblenya saat bangun (kecuali dihandle petAction)
-            // Tapi biasanya petAction('sleep') sudah handle "Hoaaam".
-            // Kita pastikan kalau bubble isinya "Zzz..." dia hilang.
-            const b = document.getElementById('petBubble');
-            if(b && b.innerText.includes("Zzz")) {
-                b.classList.add('hidden');
-            }
+            actor.classList.remove('pet-anim-sleep'); 
+            const stage = document.getElementById('petStage');
+            if(stage) stage.classList.remove('night');
             
-            if (!isAnimRunning) {
-                startPetAnimation(level);
+            updateDayNightCycle(); // Cek waktu asli untuk background
+            
+            // Restart animasi jika belum jalan
+            if (!isAnimRunning || activeAnimLevel !== level) { 
+                startPetAnimation(level); 
+                activeAnimLevel = level; 
             }
-            updateDayNightCycle(); 
     }
-
-    // Update Button States (Sama seperti sebelumnya)
-    const btnFeed = document.getElementById('btnActionFeed');
-    const btnPlay = document.getElementById('btnActionPlay');
     
-    if (myPetData.isSleeping) {
-        if(btnFeed) { btnFeed.disabled = true; btnFeed.classList.add('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span>'; }
-        if(btnPlay) { btnPlay.disabled = true; btnPlay.classList.add('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">💤</span><span class="small fw-bold">Tidur</span>'; }
+    // --- LOGIKA TOMBOL (DISABLE) ---
+    const bF = document.getElementById('btnActionFeed');
+    const bP = document.getElementById('btnActionPlay');
+    
+    if(myPetData.isSleeping) {
+        // Jika tidur, tombol makan & main mati
+        if(bF) { bF.disabled = true; bF.classList.add('opacity-50'); }
+        if(bP) { bP.disabled = true; bP.classList.add('opacity-50'); }
     } else {
-        if(btnFeed) {
-            if(myPetData.coins < 10) { btnFeed.disabled = true; btnFeed.classList.add('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">🚫</span><span class="small fw-bold">Kurang</span><span class="text-white-50" style="font-size:0.6rem">Butuh 10</span>'; } 
-            else { btnFeed.disabled = false; btnFeed.classList.remove('opacity-50'); btnFeed.innerHTML = '<span class="fs-4">🍗</span><span class="small fw-bold">Makan</span><span class="text-white-50" style="font-size:0.6rem">-10 Koin</span>'; }
+        // Jika bangun, cek koin
+        if(bF) { 
+            bF.disabled = myPetData.coins < 10; 
+            if(myPetData.coins < 10) bF.classList.add('opacity-50'); else bF.classList.remove('opacity-50');
         }
-        if(btnPlay) {
-            if(myPetData.coins < 5) { btnPlay.disabled = true; btnPlay.classList.add('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">🚫</span><span class="small fw-bold">Kurang</span><span class="text-white-50" style="font-size:0.6rem">Butuh 5</span>'; } 
-            else { btnPlay.disabled = false; btnPlay.classList.remove('opacity-50'); btnPlay.innerHTML = '<span class="fs-4">⚽</span><span class="small fw-bold">Main</span><span class="text-white-50" style="font-size:0.6rem">-5 Koin</span>'; }
+        if(bP) { 
+            bP.disabled = myPetData.coins < 5; 
+            if(myPetData.coins < 5) bP.classList.add('opacity-50'); else bP.classList.remove('opacity-50');
         }
     }
 }
@@ -6303,88 +6373,81 @@ function showPetBubble(text, isPersistent = false) {
     }
 }
 
-       window.petAction = async (act) => {
-    if(!myPetData) return;
-    initAudio();
-    const actor = document.getElementById('petActor');
+   // 2. FUNGSI AKSI (Perbaikan: Bisa main walau happy 0)
+window.petAction = async (act) => {
+    if(!myPetData) return; 
+    initAudio(); // Pastikan audio siap
     
-    // 1. LOGIKA BANGUN TIDUR (Pecahkan Zzz)
-    if (myPetData.isSleeping) {
-        if (act === 'sleep') {
-            // Bangunkan
-            myPetData.isSleeping = false;
-            showPetBubble("Hoaaam.. 🥱"); // Bubble bangun
-            playSFX('sleep'); // Gunakan sfx sleep untuk toggle
-        } else {
-            // Sedang tidur tapi diklik makan/main -> Tolak
-            // Bubble Zzz tetap ada (tidak diganggu), atau bisa dikasih efek 'Ngorok'
-            // Biarkan saja return agar tidak mengganggu tidur
-            return; 
-        }
-    } 
-    else {
-        // 2. LOGIKA NORMAL (TIDAK TIDUR)
+    const a = document.getElementById('petActor'); 
+    let m = ""; 
+    
+    // Cek Tidur: Jika sedang tidur, hanya tombol 'sleep' (bangun) yang boleh jalan
+    if (myPetData.isSleeping && act !== 'sleep') return; 
+    
+    // Reset animasi CSS sementara (untuk efek lompat/salto)
+    a.classList.remove('pet-anim-eat', 'pet-anim-play', 'pet-anim-sleep'); 
+    void a.offsetWidth; // Trigger reflow CSS
+    
+    if(act === 'feed') { 
+        if(myPetData.coins < 10) return; // Cek koin lagi (double check)
         
-        actor.classList.remove('pet-anim-eat', 'pet-anim-play', 'pet-anim-sleep');
-        void actor.offsetWidth; // Reset animasi CSS
-
-        if(act === 'feed') {
-            if(myPetData.coins < 10) return showPetBubble("Koin kurang! 🪙");
-            
-            // Cek Kesehatan: Jika sakit parah, mungkin menolak makan? (Opsional)
-            // Tapi biasanya sakit butuh makan. Kita lanjut saja.
-            
-            myPetData.coins -= 10; 
-            myPetData.hunger = Math.min(100, myPetData.hunger + 30); 
-            myPetData.xp += 10;
-            showPetBubble("Nyam! 🍗"); 
-            actor.classList.add('pet-anim-eat'); 
-            playSFX('feed'); 
-
-        } else if(act === 'play') {
-            // --- LOGIKA KESAL (MARAH) ---
-            // Jika Happy < 30 (Marah/Stress), dia menolak main
-            if (myPetData.happy < 30) {
-                 showPetBubble("Gak mood main! 💢"); // Pop up Kesal
-                 // Tambahkan efek getar/marah visual jika mau (opsional)
-                 return; // Stop, koin tidak berkurang
-            }
-
-            // --- LOGIKA SAKIT ---
-            // Jika Health < 30 (Sakit), menolak main, minta istirahat
-            if (myPetData.health < 30) {
-                showPetBubble("Badan lemas... 🤒");
-                return;
-            }
-
-            if(myPetData.coins < 5) return showPetBubble("Koin kurang! 🪙");
-
-            myPetData.coins -= 5; 
-            myPetData.happy = Math.min(100, myPetData.happy + 20); 
-            myPetData.xp += 15;
-            showPetBubble("Seru! ⚽"); 
-            actor.classList.add('pet-anim-play'); 
-            playSFX('play'); 
-
-        } else if(act === 'sleep') {
-            myPetData.isSleeping = true;
-            // Bubble Zzz dihandle di updatePetUI agar permanen
-            playSFX('sleep');
+        myPetData.coins -= 10; 
+        myPetData.hunger = Math.min(100, myPetData.hunger + 30); 
+        myPetData.xp += 10; 
+        
+        m = "Nyam!"; 
+        a.classList.add('pet-anim-eat'); // Animasi makan
+        playSFX('feed'); 
+    } 
+    else if(act === 'play') { 
+        if(myPetData.coins < 5) return; 
+        
+        myPetData.coins -= 5; 
+        myPetData.happy = Math.min(100, myPetData.happy + 20); // Tambah happy
+        myPetData.xp += 15; 
+        
+        m = "Seru!"; 
+        a.classList.add('pet-anim-play'); // Animasi main
+        playSFX('play'); 
+        
+        // CATATAN: Logika "if(happy < 30) return" SUDAH DIHAPUS.
+        // Sekarang pet selalu mau diajak main walau sedih.
+    } 
+    else if(act === 'sleep') { 
+        myPetData.isSleeping = !myPetData.isSleeping; // Toggle tidur/bangun
+        
+        if(myPetData.isSleeping) { 
+            m = "Zzz..."; 
+            playSFX('sleep'); 
+        } else { 
+            m = "Pagi!"; 
         }
     }
-
+    
     // Cek Level Up
-    if(myPetData.xp > 100 * myPetData.level) {
-        myPetData.level++; myPetData.xp = 0;
-        alert(`Naik Level ${myPetData.level}!`); playSFX('levelup');
+    if(myPetData.xp > 100 * myPetData.level) { 
+        myPetData.level++; 
+        myPetData.xp = 0; 
+        alert("Level Up! Pet kamu makin pintar."); 
+        playSFX('levelup'); 
     }
-
-    // Reset animasi setelah selesai (kecuali tidur)
-    if (!myPetData.isSleeping) {
-        setTimeout(() => { actor.classList.remove('pet-anim-eat', 'pet-anim-play'); }, 1000);
+    
+    // Tampilkan Bubble Chat
+    const b = document.getElementById('petBubble'); 
+    if(b) {
+        b.innerText = m; 
+        b.classList.remove('hidden'); 
+        setTimeout(() => b.classList.add('hidden'), 2000);
     }
-
-    await savePetData();
+    
+    // Hapus kelas animasi aksi setelah selesai (1 detik)
+    setTimeout(() => { 
+        a.classList.remove('pet-anim-eat', 'pet-anim-play'); 
+        // Jangan hapus pet-anim-sleep di sini, karena tidur itu status persisten
+    }, 1000);
+    
+    // Simpan & Update UI
+    await savePetData(); 
     updatePetUI();
 };
 
